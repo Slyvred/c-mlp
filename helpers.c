@@ -5,6 +5,8 @@
 
 void init_neuron(neuron* neuron, int n_weights) {
     neuron->bias = (double)rand() / RAND_MAX;
+    neuron->output = 0;
+    neuron->delta = 0;
     neuron->n_weights = n_weights;
     neuron->weights = malloc(n_weights * sizeof(double)); // allocate weights
 
@@ -32,8 +34,20 @@ double sigmoid(double x) {
     return (double)1 / ((double)1 + exp(-x));
 }
 
-double d_sigmoid(double x) {
-    return sigmoid(x) * ((double)1 - sigmoid(x));
+double df_sigmoid(double x) {
+    return x * ((double)1 - x);
+}
+
+double relu(double x) {
+    return x > 0 ? x : 0;
+}
+
+double df_relu(double x) {
+    return x > 0 ? 1 : 0;
+}
+
+double abs_double(double x) {
+    return x > 0 ? x : -x;
 }
 
 double sum(double inputs[], double weights[], double bias, int len) {
