@@ -1,4 +1,5 @@
 #include <assert.h>
+#include <math.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <time.h>
@@ -6,31 +7,34 @@
 #include "helpers.h"
 
 typedef struct{
-    double X[2];
+    double X[4];
     double c;
-}couple;
+}binary;
+
+binary input[16] = {
+    {{0, 0, 0, 0}, 0},
+    {{0, 0, 0, 1}, 1},
+    {{0, 0, 1, 0}, 2},
+    {{0, 0, 1, 1}, 3},
+    {{0, 1, 0, 0}, 4},
+    {{0, 1, 0, 1}, 5},
+    {{0, 1, 1, 0}, 6},
+    {{0, 1, 1, 1}, 7},
+    {{1, 0, 0, 0}, 8},
+    {{1, 0, 0, 1}, 9},
+    {{1, 0, 1, 0}, 10},
+    {{1, 0, 1, 1}, 11},
+    {{1, 1, 0, 0}, 12},
+    {{1, 1, 0, 1}, 13},
+    {{1, 1, 1, 0}, 14},
+    {{1, 1, 1, 1}, 15},
+};
 
 int main(int argc, char** argv) {
     srand(time(NULL));
 
-    // OR
-    couple OR[4] = {
-        {{0, 0}, 0},
-        {{0, 1}, 1},
-        {{1, 0}, 1},
-        {{1, 1}, 1}
-    };
-
-    // AND
-    couple AND[4] = {
-        {{0, 0}, 0},
-        {{0, 1}, 0},
-        {{1, 0}, 0},
-        {{1, 1}, 1}
-    };
-
     layer perceptron;
-    init_layer(&perceptron, 1, 2);
+    init_layer(&perceptron, 1, 4);
     int epochs = 32;
     double learning_rate = 0.1;
 
@@ -42,18 +46,18 @@ int main(int argc, char** argv) {
     printf("--- Training ---\n");
     int correct_guesses = 0;
     int i = 0;
-    while (correct_guesses < 4 && i < epochs) { // 1 epoch = running the perceptron trough all examples
+    while (correct_guesses < 16 && i < epochs) { // 1 epoch = running the perceptron trough all examples
         correct_guesses = 0; // Reset streak at the beginning of each epoch
-        for (int j = 0; j < 4; j++) {
-            couple sample = AND[j];
+        for (int j = 0; j < 16; j++) {
+            binary sample = input[j];
             neuron* n = &perceptron.neurons[0]; // Get neuron
 
             // Calculate neuron output and error
-            n->output = (double)heaviside(sum(sample.X, n->weights, n->bias, n->n_weights));
+            n->output = relu(sum(sample.X, n->weights, n->bias, n->n_weights));
             n->delta = (sample.c - n->output);
 
             // If we guessed correctly, move on to the next sample
-            if (n->output == sample.c) {
+            if (fabs(sample.c - n->output) < 1e-8) {
                 correct_guesses += 1;
                 continue;
             }
@@ -65,8 +69,8 @@ int main(int argc, char** argv) {
             // Update bias
             n->bias = n->bias + learning_rate * n->delta;
 
-            if (i % 10 == 0 && j == 0) {
-                printf("Epoch: %d, Predicted: %f | Actual: %f | Loss: %f\n", i, n->output, sample.c, n->delta);
+            if (i % 100 == 0 && j == 0) {
+                printf("Epoch: %d | Loss: %f\n", i, n->delta);
             }
         }
         i++;
@@ -75,12 +79,12 @@ int main(int argc, char** argv) {
 
     print_layer(&perceptron);
     printf("--- Results ---\n");
-    for (int i = 0; i < 4; i++) {
-        couple sample = AND[i];
+    for (int i = 0; i < 16; i++) {
+        binary sample = input[i];
         neuron* n = &perceptron.neurons[0]; // Get neuron
 
         // Calculate neuron output and error
-        n->output = heaviside(sum(sample.X, n->weights, n->bias, n->n_weights));
-        printf("Input: [%.0f, %.0f] -> Target: %.0f -> Predicted: %f\n", sample.X[0], sample.X[1], sample.c, n->output);
+        n->output = relu(sum(sample.X, n->weights, n->bias, n->n_weights));
+        printf("Input: [%.0f, %.0f, %0.f, %0.f] -> Target: %.0f -> Predicted: %f\n", sample.X[0], sample.X[1],sample.X[2], sample.X[3], sample.c, n->output);
     }
 }
