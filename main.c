@@ -1,3 +1,4 @@
+#include <assert.h>
 #include <stdio.h>
 #include <time.h>
 #include <stdlib.h>
@@ -27,17 +28,22 @@ int main() {
         {{1, 1}, 0}
     };
 
-    layer hidden_layer, output_layer;
-    layer* mlp[2] = {&hidden_layer, &output_layer};
-    init_layer(&hidden_layer, 3, 2);
+    layer hidden_layer_1, hidden_layer_2, output_layer;
+    layer* hidden_layers[2] = {&hidden_layer_1, &hidden_layer_2};
+    init_layer(&hidden_layer_1, 2, 2);
+    init_layer(&hidden_layer_2, 2, 2);
     init_layer(&output_layer, 1, 2);
 
-    for (int i = 0; i < 2; i++) {
-        print_layer(mlp[i]);
-    }
+    mlp mlp = {
+        hidden_layers,
+        2,
+        output_layer
+    };
+
+    print_mlp(&mlp);
 
     printf("\n--- Training ---\n");
-    int epochs = 1024;
+    int epochs = 10000;
     double rate = 0.1;
 
     for (int i = 0; i < epochs; i++) {
@@ -46,55 +52,90 @@ int main() {
         for (int s = 0; s < 4; s++) {
             couple sample = XOR[s];
 
-            // Forward pass
-            for (int j = 0; j < hidden_layer.n_neurons; j++) {
-                neuron* n = &hidden_layer.neurons[j];
-                n->output = relu(sum(sample.X, n->weights, n->bias, n->n_weights));
-            }
+            // --- 1. Forward pass (Passe avant) ---
 
-            for (int j = 0; j < output_layer.n_neurons; j++) {
-                neuron* n = &output_layer.neurons[j];
+            // On garde une référence vers les entrées de la couche actuelle
+            double* layer_inputs = sample.X;
 
-                double* h_outs = malloc(hidden_layer.n_neurons * sizeof(double));
-                for(int k = 0; k < hidden_layer.n_neurons; k++) {
-                    h_outs[k] = hidden_layer.neurons[k].output;
+            for (int j = 0; j < mlp.n_hidden_layers; j++) {
+                layer* l = mlp.hidden_layers[j];
+                for (int k = 0; k < l->n_neurons; k++) {
+                    neuron* n = &l->neurons[k];
+                    // On utilise layer_inputs (qui est soit sample.X, soit la sortie précédente)
+                    n->output = relu(sum(layer_inputs, n->weights, n->bias, n->n_weights));
                 }
 
-                n->output = relu(sum(h_outs, n->weights, n->bias, n->n_weights));
-                free(h_outs);
-
-                double error = sample.c - n->output;
-                total_error += error * error; // Somme des carrés pour la MSE
-
-                // DELTA SORTIE
-                n->delta = df_relu(n->output) * error;
+                // Pour la prochaine couche, les entrées seront les sorties de celle-ci
+                // Attention: on doit créer un tableau temporaire pour pointer vers les sorties
+                // Mais ici, on peut simplement dire que la prochaine couche lira l -> neurons[...].output
             }
 
-            // Back prop
-            for (int j = 0; j < hidden_layer.n_neurons; j++) {
-                neuron* n = &hidden_layer.neurons[j];
-                double sum_errors = 0;
-                for (int k = 0; k < output_layer.n_neurons; k++) {
-                    sum_errors += output_layer.neurons[k].delta * output_layer.neurons[k].weights[j];
+            // Calcul sortie finale
+            neuron* out_n = &mlp.output_layer.neurons[0];
+
+            // On récupère les sorties de la dernière couche cachée manuellement
+            layer* last_hidden = mlp.hidden_layers[mlp.n_hidden_layers - 1];
+            double last_hidden_outputs[2]; // Hardcodé pour 2 neurones cachés
+            last_hidden_outputs[0] = last_hidden->neurons[0].output;
+            last_hidden_outputs[1] = last_hidden->neurons[1].output;
+
+            out_n->output = sigmoid(sum(last_hidden_outputs, out_n->weights, out_n->bias, out_n->n_weights));
+
+            // Calcul erreur / Delta Sortie
+            double error = sample.c - out_n->output;
+            total_error += error * error;
+            out_n->delta = df_sigmoid(out_n->output) * error;
+
+            // --- 2. Back propagation (Rétropropagation) ---
+
+            // A. D'abord calculer les deltas pour TOUTES les couches cachées
+            // On part de la dernière couche cachée vers la première
+            for (int j = mlp.n_hidden_layers - 1; j >= 0; j--) {
+                layer* current_layer = mlp.hidden_layers[j];
+                // La couche suivante est soit la sortie (si on est à la dernière cachée), soit la couche cachée j+1
+                layer* next_layer = (j == mlp.n_hidden_layers - 1) ? &mlp.output_layer : mlp.hidden_layers[j + 1];
+
+                for (int k = 0; k < current_layer->n_neurons; k++) {
+                    neuron* n = &current_layer->neurons[k];
+                    double sum_errors = 0;
+
+                    // On regarde tous les neurones de la couche SUIVANTE
+                    for (int l = 0; l < next_layer->n_neurons; l++) {
+                        neuron* next_n = &next_layer->neurons[l];
+                        // L'erreur vient du delta du neurone suivant * le poids qui relie k à l
+                        // Le poids est stocké dans le neurone SUIVANT, à l'index k
+                        sum_errors += next_n->delta * next_n->weights[k];
+                    }
+                    n->delta = df_relu(n->output) * sum_errors;
                 }
-                n->delta = df_relu(n->output) * sum_errors;
             }
 
-            // Update output weights
-            for (int j = 0; j < output_layer.n_neurons; j++) {
-                neuron* n = &output_layer.neurons[j];
+            // --- 3. Update weights (Mise à jour des poids) ---
+
+            // A. Mise à jour Output Layer
+            for (int j = 0; j < mlp.output_layer.n_neurons; j++) {
+                neuron* n = &mlp.output_layer.neurons[j];
                 for (int k = 0; k < n->n_weights; k++) {
-                    n->weights[k] += rate * n->delta * hidden_layer.neurons[k].output;
+                    // L'entrée de l'output layer est la sortie de la dernière hidden layer
+                    double input_val = mlp.hidden_layers[mlp.n_hidden_layers - 1]->neurons[k].output;
+                    n->weights[k] += rate * n->delta * input_val;
                 }
                 n->bias += rate * n->delta;
             }
-            // Update hidden weights
-            for (int j = 0; j < hidden_layer.n_neurons; j++) {
-                neuron* n = &hidden_layer.neurons[j];
-                for (int k = 0; k < n->n_weights; k++) {
-                    n->weights[k] += rate * n->delta * sample.X[k];
+
+            // B. Mise à jour Hidden Layers
+            for (int j = 0; j < mlp.n_hidden_layers; j++) {
+                layer* layer = mlp.hidden_layers[j];
+                for (int l = 0; l < layer->n_neurons; l++) {
+                    neuron* n = &layer->neurons[l];
+                    for (int k = 0; k < n->n_weights; k++) {
+                        // Si j=0, l'entrée est sample.X.
+                        // Sinon, c'est la sortie de la couche j-1
+                        double input_val = (j == 0) ? sample.X[k] : mlp.hidden_layers[j-1]->neurons[k].output;
+                        n->weights[k] += rate * n->delta * input_val;
+                    }
+                    n->bias += rate * n->delta;
                 }
-                n->bias += rate * n->delta;
             }
         }
 
@@ -105,23 +146,44 @@ int main() {
     }
 
     printf("\n--- Results ---\n");
-    for (int i = 0; i < 2; i++) {
-        print_layer(mlp[i]);
-    }
+    print_mlp(&mlp);
 
     printf("\n--- Final Tests ---\n");
     for (int i = 0; i < 4; i++) {
         couple input = XOR[i];
-        for (int i = 0; i < hidden_layer.n_neurons; i++) {
-            neuron* n = &hidden_layer.neurons[i];
-            n->output = relu(sum(input.X, n->weights, n->bias, n->n_weights));
+
+        // 1. On crée un buffer temporaire pour faire transiter les données
+        // On l'alloue assez grand pour tenir le max de neurones d'une couche
+        double current_inputs[10]; // Taille 10 pour être large (ou malloc)
+
+        // 2. On copie l'entrée initiale dans ce buffer
+        current_inputs[0] = input.X[0];
+        current_inputs[1] = input.X[1];
+
+        // 3. Boucle sur les couches cachées
+        for (int j = 0; j < mlp.n_hidden_layers; j++) {
+            layer* l = mlp.hidden_layers[j];
+
+            // Forward pass pour cette couche
+            for (int k = 0; k < l->n_neurons; k++) {
+                neuron* n = &l->neurons[k];
+                // On lit depuis current_inputs (copie), pas input.X
+                n->output = relu(sum(current_inputs, n->weights, n->bias, n->n_weights));
+            }
+
+            // Mise à jour du buffer pour la prochaine couche
+            // Les sorties de cette couche deviennent les entrées de la suivante
+            get_layer_outputs(l, current_inputs);
         }
 
-        for (int i = 0; i < output_layer.n_neurons; i++) {
-            neuron* n = &output_layer.neurons[i];
-            double h_outs[3] = {hidden_layer.neurons[0].output, hidden_layer.neurons[1].output, hidden_layer.neurons[2].output};
-            n->output = relu(sum(h_outs, n->weights, n->bias, n->n_weights));
+        // 4. Output layer (inchangé, sauf qu'on prend les inputs du buffer)
+        for (int j = 0; j < output_layer.n_neurons; j++) {
+            neuron* n = &output_layer.neurons[j];
+            // current_inputs contient maintenant les sorties de la DERNIÈRE couche cachée
+            n->output = sigmoid(sum(current_inputs, n->weights, n->bias, n->n_weights));
         }
+
+        // 5. Affichage (input.X est resté intact !)
         printf("Input: [%.0f, %.0f] -> Target: %.0f -> Predicted: %f\n",
                 input.X[0], input.X[1], input.c, output_layer.neurons[0].output);
     }

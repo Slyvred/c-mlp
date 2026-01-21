@@ -4,7 +4,7 @@
 #include <stdio.h>
 
 void init_neuron(neuron* neuron, int n_weights) {
-    neuron->bias = (double)rand() / RAND_MAX;
+    neuron->bias = ((double)rand() / RAND_MAX) * 2.0 - 1.0;
     neuron->output = 0;
     neuron->delta = 0;
     neuron->n_weights = n_weights;
@@ -12,7 +12,7 @@ void init_neuron(neuron* neuron, int n_weights) {
 
     // Init weights
     for (int i = 0; i < n_weights; i++) {
-        neuron->weights[i] = (double)rand() / RAND_MAX;
+        neuron->weights[i] = ((double)rand() / RAND_MAX) * 2.0 - 1.0;
     }
 }
 
@@ -23,6 +23,13 @@ void init_layer(layer* layer, int n_neurons, int n_weights) {
     // Init neurons
     for (int i = 0; i < layer->n_neurons; i++) {
         init_neuron(&layer->neurons[i], n_weights);
+    }
+}
+
+void get_layer_outputs(layer* layer, double* arr) {
+    for (int i = 0; i < layer->n_neurons; i++) {
+        neuron* n = &layer->neurons[i];
+        arr[i] = n->output;
     }
 }
 
@@ -74,4 +81,19 @@ void print_neuron(neuron *neuron) {
     for (int j = 0; j < neuron->n_weights; j++) {
         printf("      - W%d: %11f\n", j, neuron->weights[j]);
     }
+}
+
+void print_mlp(mlp *mlp) {
+    for (int i = 0; i < mlp->n_hidden_layers; i++) {
+        print_layer(mlp->hidden_layers[i]);
+    }
+    print_layer(&mlp->output_layer);
+}
+
+void print_outputs(layer* layer) {
+    printf("Outputs: ");
+    for (int i = 0; i < layer->n_neurons; i++) {
+        printf("%f ", layer->neurons[i].output);
+    }
+    printf("\n");
 }
