@@ -9,23 +9,30 @@ double sigmoid_deriv(double x) { return x * (1.0 - x); }
 double ranged_rand(double min, double max) { return ((double)rand() / RAND_MAX) * (max - min) + min; }
 
 
-#define N_HIDDEN 16 // Nombre de neurones cachés
+#define N_HIDDEN 128 // Nombre de neurones cachés
 #define N_OUTPUT 4 // Nombre de neurones de sortie
 
 typedef struct {
-    double input;                       // Entrée (entier base 10)
-    double hidden[N_HIDDEN];            // 16 neurones cachés
-    double output[N_OUTPUT];            // 4 neurones de sortie (les 4 bits)
+    double input;                           // Entrée (entier base 10)
+    double hidden[N_HIDDEN];                // 16 neurones cachés
+    double output[N_OUTPUT];                // 4 neurones de sortie (les 4 bits)
 
     // Poids et Bias
-    double w_ih[N_HIDDEN];              // Poids Entrée -> Cachée
-    double b_h[N_HIDDEN];               // Biais couche cachée
-    double w_ho[N_HIDDEN][N_OUTPUT];    // Poids Cachée -> Sortie
-    double b_o[N_OUTPUT];               // Biais couche sortie
+    double w_ih[N_HIDDEN];                  // Poids Entrée -> Cachée
+    double b_h[N_HIDDEN];                   // Biais couche cachée
+    double w_ho[N_HIDDEN][N_OUTPUT];        // Poids Cachée -> Sortie
+    double b_o[N_OUTPUT];                   // Biais couche sortie
+    double (*activation_fn)(double);        // Fonction d'activation
+    double (*activation_fn_deriv)(double);  // Dérivée de de la fn d'activation
 } MLP;
 
 // Initialisation aléatoire
-void init_mlp(MLP *m) {
+void init_mlp(MLP *m, double (*activation_fn)(double), double (*activation_fn_deriv)(double)) {
+
+    // Définition des fonctions d'activations
+    m->activation_fn = activation_fn;
+    m->activation_fn_deriv = activation_fn_deriv;
+
     for (int i = 0; i < N_HIDDEN; i++) {
         m->w_ih[i] = ranged_rand(-1, 1);
         m->b_h[i] = ranged_rand(-1, 1);
@@ -42,7 +49,7 @@ void forward(MLP *m, double input, double max_input_val) {
 
     // Entrée -> Cachée
     for (int i = 0; i < N_HIDDEN; i++) {
-        m->hidden[i] = sigmoid(m->input * m->w_ih[i] + m->b_h[i]);
+        m->hidden[i] = m->activation_fn(m->input * m->w_ih[i] + m->b_h[i]);
     }
 
     // Cachée -> Sortie
@@ -51,7 +58,7 @@ void forward(MLP *m, double input, double max_input_val) {
         for (int i = 0; i < N_HIDDEN; i++) {
             sum += m->hidden[i] * m->w_ho[i][j];
         }
-        m->output[j] = sigmoid(sum);
+        m->output[j] = m->activation_fn(sum);
     }
 }
 
@@ -61,7 +68,7 @@ void train(MLP *m, double target[N_OUTPUT], double lr) {
     // 1. Calcul de l'erreur en sortie
     for (int j = 0; j < N_OUTPUT; j++) {
         double error = target[j] - m->output[j];
-        delta_o[j] = error * sigmoid_deriv(m->output[j]);
+        delta_o[j] = error * m->activation_fn_deriv(m->output[j]);
     }
 
     // 2. Calcul de l'erreur sur la couche cachée
@@ -71,7 +78,7 @@ void train(MLP *m, double target[N_OUTPUT], double lr) {
         for (int j = 0; j < N_OUTPUT; j++) {
             error += delta_o[j] * m->w_ho[i][j];
         }
-        delta_h[i] = error * sigmoid_deriv(m->hidden[i]);
+        delta_h[i] = error * m->activation_fn_deriv(m->hidden[i]);
     }
 
     // 3. Mise à jour des poids Cachée -> Sortie
@@ -92,7 +99,7 @@ void train(MLP *m, double target[N_OUTPUT], double lr) {
 int main(int argc, char** argv) {
     srand(time(NULL)); // Pour la reproductibilité
     MLP m;
-    init_mlp(&m);
+    init_mlp(&m, sigmoid, sigmoid_deriv);
 
     int epochs = 70000;
     double lr = 0.5;
