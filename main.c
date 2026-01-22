@@ -103,11 +103,41 @@ void forward(MLP *m, double* inputs, int n_inputs) {
 }
 
 // Entraînement (Backpropagation)
-void train(MLP *m, double* target, int target_shape, double lr) {
-    double delta_output[target_shape];
-    for (int i = 0; i < m->output->n_neurons; i++) {
-        double error =
-        delta_output[i] = m->output->neurons[i].output;
+void train(MLP *m, double* target, double* raw_inputs, double lr) {
+
+    // Calculate output layer error
+    layer* l = m->output;
+    double* delta_output = malloc(l->n_neurons * sizeof(double));
+    for (int i = 0; i < l->n_neurons; i++) {
+        double output = l->neurons[i].output;
+        double error = target[i] - output;
+        delta_output[i] = error * l->activation_function->df(output);
+    }
+
+    // Calculate hidden layer error
+    l = m->hidden;
+    double* delta_hidden = malloc(l->n_neurons * sizeof(double));
+    for (int i = 0; i < l->n_neurons; i++) {
+        double output = l->neurons[i].output;
+        double error = 0;
+
+        for (int j = 0; j < m->output->n_neurons; j++) {
+            error += delta_output[j] * m->output->neurons[j].weights[i];
+        }
+        delta_hidden[i] = error * l->activation_function->df(output);
+    }
+
+    // Calculate input layer error
+    l = m->input;
+    double* delta_input = malloc(l->n_neurons * sizeof(double));
+    for (int i = 0; i < l->n_neurons; i++) {
+        double output = l->neurons[i].output;
+        double error = 0;
+
+        for (int j = 0; j < m->hidden->n_neurons; j++) {
+            error += delta_hidden[j] * m->output->neurons[j].weights[i];
+        }
+        delta_input[i] = error * l->activation_function->df(output);
     }
 }
 
@@ -116,9 +146,9 @@ int main(int argc, char** argv) {
     function sig = {sigmoid, sigmoid_deriv};
 
     layer input, hidden, output;
-    init_layer(&input, 1, 1, &sig);      // 1 neuron with 1 weight
-    init_layer(&hidden, 8, 1, &sig);     // 8 neurons with 1 weights each
-    init_layer(&output, 4, 8, &sig);     // 4 neurons with 8 weights each
+    init_layer(&input, 1, 1, &sig);                     // 1 neuron with 1 weight
+    init_layer(&hidden, 8, input.n_neurons, &sig);      // 8 neurons with 1 weights each
+    init_layer(&output, 4, hidden.n_neurons, &sig);     // 4 neurons with 8 weights each
     MLP model = {&input, &hidden, &output};
 
 
@@ -128,11 +158,6 @@ int main(int argc, char** argv) {
         {1,0,0,0}, {1,0,0,1}, {1,0,1,0}, {1,0,1,1},
         {1,1,0,0}, {1,1,0,1}, {1,1,1,0}, {1,1,1,1}
     };
-
-    double value[1] = {4};
-    forward(&model, value, 1);
-
-    printf("In: %f | Out: [%.0f %.0f %.0f %.0f]\n", value[0], model.output->neurons[0].output, model.output->neurons[1].output, model.output->neurons[2].output, model.output->neurons[3].output);
 
     int epochs = 70000;
     double lr = 0.5;
@@ -149,7 +174,7 @@ int main(int argc, char** argv) {
             double input[1] = { i / 15.0 }; // Normalisation de l'entrée
             forward(&model, input, 1);
             printf("In: %f | Out: [%.8f %.8f %.8f %.8f]\n", input[0], model.output->neurons[0].output, model.output->neurons[1].output, model.output->neurons[2].output, model.output->neurons[3].output);
-            // train(&model, dataset[i], lr);
+            train(&model, dataset[i], input, lr);
         }
     }
 
