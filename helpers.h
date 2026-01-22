@@ -23,8 +23,6 @@ void init_neuron(neuron* neuron, int n_weights);
 
 void init_layer(layer* layer, int n_neurones, int n_weights);
 
-double abs_double(double x);
-
 int heaviside(double x);
 
 double relu(double x);

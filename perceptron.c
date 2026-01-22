@@ -46,9 +46,10 @@ int main(int argc, char** argv) {
     printf("--- Training ---\n");
     int correct_guesses = 0;
     int i = 0;
-    while (correct_guesses < 16 && i < epochs) { // 1 epoch = running the perceptron trough all examples
+    int sample_size = 10; // 10 samples out of 16 (split tain/test)
+    while (correct_guesses < sample_size && i < epochs) { // 1 epoch = running the perceptron trough all training examples
         correct_guesses = 0; // Reset streak at the beginning of each epoch
-        for (int j = 0; j < 16; j++) {
+        for (int j = 0; j < sample_size; j++) {
             binary sample = input[j];
             neuron* n = &perceptron.neurons[0]; // Get neuron
 
@@ -75,16 +76,18 @@ int main(int argc, char** argv) {
         }
         i++;
     }
-    printf("Epochs: %d\n", i);
 
+    printf("--- End ---\nEpochs: %d\nTrained Neuron:\n", i);
     print_layer(&perceptron);
+
+    // Testing the perceptron
     printf("--- Results ---\n");
-    for (int i = 0; i < 16; i++) {
+    for (int i = 0; i < 16; i++) { // 16 to test with all cases
         binary sample = input[i];
         neuron* n = &perceptron.neurons[0]; // Get neuron
 
         // Calculate neuron output and error
         n->output = relu(sum(sample.X, n->weights, n->bias, n->n_weights));
-        printf("Input: [%.0f, %.0f, %0.f, %0.f] -> Target: %.0f -> Predicted: %f\n", sample.X[0], sample.X[1],sample.X[2], sample.X[3], sample.c, n->output);
+        printf("Input: [%.0f, %.0f, %0.f, %0.f] | Predicted: %0.f | Actual: %0.f\n", sample.X[0], sample.X[1],sample.X[2], sample.X[3], n->output, sample.c);
     }
 }

@@ -53,9 +53,6 @@ double df_relu(double x) {
     return x > 0 ? 1 : 0;
 }
 
-double abs_double(double x) {
-    return x > 0 ? x : -x;
-}
 
 double sum(double inputs[], double weights[], double bias, int len) {
     double sum = 0;
