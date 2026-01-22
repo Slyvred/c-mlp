@@ -46,7 +46,7 @@ int main(int argc, char** argv) {
     printf("--- Training ---\n");
     int correct_guesses = 0;
     int i = 0;
-    int sample_size = 10; // 10 samples out of 16 (split tain/test)
+    int sample_size = 16 * 0.7; // 11 samples out of 16 (split tain/test)
     while (correct_guesses < sample_size && i < epochs) { // 1 epoch = running the perceptron trough all training examples
         correct_guesses = 0; // Reset streak at the beginning of each epoch
         for (int j = 0; j < sample_size; j++) {
