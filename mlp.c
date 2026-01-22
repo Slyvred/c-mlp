@@ -6,29 +6,34 @@
 // --- Fonctions Mathématiques ---
 double sigmoid(double x) { return 1.0 / (1.0 + exp(-x)); }
 double sigmoid_deriv(double x) { return x * (1.0 - x); }
+double ranged_rand(double min, double max) { return ((double)rand() / RAND_MAX) * (max - min) + min; }
+
+
+#define N_HIDDEN 16 // Nombre de neurones cachés
+#define N_OUTPUT 4 // Nombre de neurones de sortie
 
 typedef struct {
     double input;
-    double hidden[16]; // 16 neurones cachés
-    double output[4];  // 4 neurones de sortie (les 4 bits)
+    double hidden[N_HIDDEN];            // 16 neurones cachés
+    double output[N_OUTPUT];            // 4 neurones de sortie (les 4 bits)
 
     // Poids et Bias
-    double w_ih[16];   // Poids Entrée -> Cachée
-    double b_h[16];    // Biais couche cachée
-    double w_ho[16][4];// Poids Cachée -> Sortie
-    double b_o[4];     // Biais couche sortie
+    double w_ih[N_HIDDEN];              // Poids Entrée -> Cachée
+    double b_h[N_HIDDEN];               // Biais couche cachée
+    double w_ho[N_HIDDEN][N_OUTPUT];    // Poids Cachée -> Sortie
+    double b_o[N_OUTPUT];               // Biais couche sortie
 } MLP;
 
 // Initialisation aléatoire
 void init_mlp(MLP *m) {
-    for (int i = 0; i < 16; i++) {
-        m->w_ih[i] = ((double)rand() / RAND_MAX) * 2 - 1;
-        m->b_h[i] = ((double)rand() / RAND_MAX) * 2 - 1;
-        for (int j = 0; j < 4; j++) {
-            m->w_ho[i][j] = ((double)rand() / RAND_MAX) * 2 - 1;
+    for (int i = 0; i < N_HIDDEN; i++) {
+        m->w_ih[i] = ranged_rand(-1, 1);
+        m->b_h[i] = ranged_rand(-1, 1);
+        for (int j = 0; j < N_OUTPUT; j++) {
+            m->w_ho[i][j] = ranged_rand(-1, 1);
         }
     }
-    for (int j = 0; j < 4; j++) m->b_o[j] = ((double)rand() / RAND_MAX) * 2 - 1;
+    for (int j = 0; j < N_OUTPUT; j++) m->b_o[j] = ranged_rand(-1, 1);
 }
 
 // Passage en avant (Forward Pass)
@@ -36,14 +41,14 @@ void forward(MLP *m, double input) {
     m->input = input / 15.0; // Normalisation de l'entrée entre 0 et 1
 
     // Entrée -> Cachée
-    for (int i = 0; i < 16; i++) {
+    for (int i = 0; i < N_HIDDEN; i++) {
         m->hidden[i] = sigmoid(m->input * m->w_ih[i] + m->b_h[i]);
     }
 
     // Cachée -> Sortie
-    for (int j = 0; j < 4; j++) {
+    for (int j = 0; j < N_OUTPUT; j++) {
         double sum = m->b_o[j];
-        for (int i = 0; i < 16; i++) {
+        for (int i = 0; i < N_HIDDEN; i++) {
             sum += m->hidden[i] * m->w_ho[i][j];
         }
         m->output[j] = sigmoid(sum);
@@ -51,43 +56,51 @@ void forward(MLP *m, double input) {
 }
 
 // Entraînement (Backpropagation)
-void train(MLP *m, double target[4], double lr) {
-    double delta_o[4];
+void train(MLP *m, double target[N_OUTPUT], double lr) {
+    double delta_o[N_OUTPUT];
     // 1. Calcul de l'erreur en sortie
-    for (int j = 0; j < 4; j++) {
+    for (int j = 0; j < N_OUTPUT; j++) {
         double error = target[j] - m->output[j];
         delta_o[j] = error * sigmoid_deriv(m->output[j]);
     }
 
     // 2. Calcul de l'erreur sur la couche cachée
-    double delta_h[16];
-    for (int i = 0; i < 16; i++) {
+    double delta_h[N_HIDDEN];
+    for (int i = 0; i < N_HIDDEN; i++) {
         double error = 0;
-        for (int j = 0; j < 4; j++) {
+        for (int j = 0; j < N_OUTPUT; j++) {
             error += delta_o[j] * m->w_ho[i][j];
         }
         delta_h[i] = error * sigmoid_deriv(m->hidden[i]);
     }
 
     // 3. Mise à jour des poids Cachée -> Sortie
-    for (int j = 0; j < 4; j++) {
-        for (int i = 0; i < 16; i++) {
+    for (int j = 0; j < N_OUTPUT; j++) {
+        for (int i = 0; i < N_HIDDEN; i++) {
             m->w_ho[i][j] += lr * delta_o[j] * m->hidden[i];
         }
         m->b_o[j] += lr * delta_o[j];
     }
 
     // 4. Mise à jour des poids Entrée -> Cachée
-    for (int i = 0; i < 16; i++) {
+    for (int i = 0; i < N_HIDDEN; i++) {
         m->w_ih[i] += lr * delta_h[i] * m->input;
         m->b_h[i] += lr * delta_h[i];
     }
 }
 
-int main() {
-    srand(42); // Pour la reproductibilité
+int main(int argc, char** argv) {
+    srand(time(NULL)); // Pour la reproductibilité
     MLP m;
     init_mlp(&m);
+
+    int epochs = 70000;
+    double lr = 0.5;
+
+    if (argc == 3) {
+        epochs = atoi(argv[1]);
+        lr = atof(argv[2]);
+    }
 
     double dataset[16][4] = {
         {0,0,0,0}, {0,0,0,1}, {0,0,1,0}, {0,0,1,1},
@@ -97,10 +110,10 @@ int main() {
     };
 
     printf("Entraînement en cours...\n");
-    for (int epoch = 0; epoch < 50000; epoch++) {
+    for (int epoch = 0; epoch < epochs; epoch++) {
         for (int i = 0; i < 16; i++) {
             forward(&m, (double)i);
-            train(&m, dataset[i], 0.5);
+            train(&m, dataset[i], lr);
         }
     }
 
