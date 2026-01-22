@@ -13,7 +13,7 @@ double ranged_rand(double min, double max) { return ((double)rand() / RAND_MAX) 
 #define N_OUTPUT 4 // Nombre de neurones de sortie
 
 typedef struct {
-    double input;
+    double input;                       // Entrée (entier base 10)
     double hidden[N_HIDDEN];            // 16 neurones cachés
     double output[N_OUTPUT];            // 4 neurones de sortie (les 4 bits)
 
@@ -37,8 +37,8 @@ void init_mlp(MLP *m) {
 }
 
 // Passage en avant (Forward Pass)
-void forward(MLP *m, double input) {
-    m->input = input / 15.0; // Normalisation de l'entrée entre 0 et 1
+void forward(MLP *m, double input, double max_input_val) {
+    m->input = input / max_input_val; // Normalisation de l'entrée entre 0 et 1
 
     // Entrée -> Cachée
     for (int i = 0; i < N_HIDDEN; i++) {
@@ -112,14 +112,14 @@ int main(int argc, char** argv) {
     printf("Entraînement en cours...\n");
     for (int epoch = 0; epoch < epochs; epoch++) {
         for (int i = 0; i < 16; i++) {
-            forward(&m, (double)i);
+            forward(&m, (double)i, 15.0);
             train(&m, dataset[i], lr);
         }
     }
 
     printf("\n--- Résultats ---\n");
     for (int i = 0; i < 16; i++) {
-        forward(&m, (double)i);
+        forward(&m, (double)i, 15.0);
         printf("In: %2d | Out: [%.0f %.0f %.0f %.0f]\n",
                i, round(m.output[0]), round(m.output[1]), round(m.output[2]), round(m.output[3]));
     }
