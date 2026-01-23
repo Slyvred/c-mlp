@@ -54,9 +54,9 @@ void init_neuron(neuron* neuron, int n_parameters) {
 
     // Random init value for neurons and bias
     for (int i = 0; i < n_parameters; i++) {
-        neuron->weights[i] = ranged_rand(-1, 1);
+        neuron->weights[i] = ranged_rand(-0.5, 0.5);
     }
-    neuron->bias = ranged_rand(-1, 1);
+    neuron->bias = ranged_rand(-0.5, 0.5);
 }
 
 void init_layer(layer *layer, int n_neurons, int n_parameters, function *activation_function) {
@@ -146,22 +146,28 @@ int main(int argc, char** argv) {
     srand(42); // Pour la reproductibilité
 
     layer hidden, output;
-    function sig = {sigmoid, sigmoid_deriv};            // Activation function
-    init_layer(&hidden, 4, 2, &sig);                   // 8 neurons with 1 weights eachh
-    init_layer(&output, 1, hidden.n_neurons, &sig);     // 4 neurons with 8 weights each
+    function sig = {sigmoid, sigmoid_deriv};
+    init_layer(&hidden, 16, 1, &sig);
+    init_layer(&output, 4, hidden.n_neurons, &sig);
 
     layer* layers[2] = {&hidden, &output};
     MLP model = {layers, 2};
 
-    double X[4][2] = {{0,0}, {0,1}, {1,0}, {1,1}};
-    double y[4][1] = {{0},   {1},   {1},   {0}};
+    // XOR example
+    // double X[4][2] = {{0,0}, {0,1}, {1,0}, {1,1}};
+    // double y[4][1] = {{0},   {1},   {1},   {0}};
 
-    // double dataset[16][4] = {
-    //     {0,0,0,0}, {0,0,0,1}, {0,0,1,0}, {0,0,1,1},
-    //     {0,1,0,0}, {0,1,0,1}, {0,1,1,0}, {0,1,1,1},
-    //     {1,0,0,0}, {1,0,0,1}, {1,0,1,0}, {1,0,1,1},
-    //     {1,1,0,0}, {1,1,0,1}, {1,1,1,0}, {1,1,1,1}
-    // };
+    double X[16][1];
+    for(int i = 0; i < 16; i++) {
+        X[i][0] = i / 15.0; // Normalize inputs
+    }
+
+    double y[16][4] = {
+        {0,0,0,0}, {0,0,0,1}, {0,0,1,0}, {0,0,1,1},
+        {0,1,0,0}, {0,1,0,1}, {0,1,1,0}, {0,1,1,1},
+        {1,0,0,0}, {1,0,0,1}, {1,0,1,0}, {1,0,1,1},
+        {1,1,0,0}, {1,1,0,1}, {1,1,1,0}, {1,1,1,1}
+    };
 
     int epochs = 70000;
     double lr = 0.5;
@@ -174,17 +180,17 @@ int main(int argc, char** argv) {
 
     printf("Entraînement en cours...\n");
     for (int epoch = 0; epoch < epochs; epoch++) {
-        int i = rand() % 4;
+        int i = rand() % 16;
         forward(&model, X[i], 1);
         train(&model, X[i], y[i], lr);
     }
 
     printf("\n--- Résultats ---\n");
-    for (int i = 0; i < 4; i++) {
+    for (int i = 0; i < 16; i++) {
         forward(&model, X[i], 1);
         double* outputs = model.layers[model.n_layers - 1]->outputs;
-        printf("In: %2d | Out: [%.2f] | Expected: [%f]\n",
-               i, outputs[0], y[i][0]);
+        printf("In: %2d | Out: [%0.f %.0f %.0f %.0f] | Expected: [%0.f %0.f %0.f %0.f]\n",
+               i, outputs[0], outputs[1], outputs[2], outputs[3], y[i][0], y[i][1], y[i][2], y[i][3]);
     }
     return 0;
 }
