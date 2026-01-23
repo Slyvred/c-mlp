@@ -18,6 +18,14 @@ $$S(x) = \frac{1}{1 + e^{-x}}$$
 To facilitate learning through backpropagation, the derivative of the Sigmoid is utilized during the weight update phase: 
 $$S'(x) = S(x) \cdot (1 - S(x))$$
 
+## References
+- https://www.geeksforgeeks.org/deep-learning/multi-layer-perceptron-learning-in-tensorflow/
+  - For data structures, formulas etc
+- Materials from previous courses
+  - Theory, perceptron+mlp pseudocode
+- https://www.geeksforgeeks.org/machine-learning/backpropagation-in-neural-network/
+  - Backprop
+
 ---
 ## Implementation Example: Decimal to Binary
 
