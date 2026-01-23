@@ -19,7 +19,7 @@ typedef struct {
 typedef struct {
     // y = a_i * x_i + b
     double* weights;
-    double n_weights;
+    int n_weights;
     double output;
     double bias;
     double delta; // Neuron error
@@ -142,16 +142,36 @@ void train(MLP *m, double* raw_inputs, double* target, double lr) {
     }
 }
 
+int get_num_parameters(MLP* mlp) {
+    int parameters = 0;
+    for (int i = 0; i < mlp->n_layers; i++) {
+        layer* l = mlp->layers[i];
+        parameters += l->n_neurons * l->neurons[0].n_weights;
+    }
+
+    return parameters;
+}
+
+void print_model(MLP* model) {
+    for (int i = 0; i < model->n_layers; i++) {
+        layer* l = model->layers[i];
+        printf("Layer %d: Neurons: %d | Parameters: %d\n", i, l->n_neurons, l->neurons[0].n_weights);
+    }
+    printf("Total number of parameters: %d\n", get_num_parameters(model));
+}
+
 int main(int argc, char** argv) {
     srand(42); // Pour la reproductibilité
 
-    layer hidden, output;
+    layer hidden, hidden2, output;
     function sig = {sigmoid, sigmoid_deriv};
-    init_layer(&hidden, 16, 1, &sig);
-    init_layer(&output, 4, hidden.n_neurons, &sig);
+    init_layer(&hidden, 32, 1, &sig);
+    init_layer(&hidden2, 16, hidden.n_neurons, &sig);
+    init_layer(&output, 4, hidden2.n_neurons, &sig);
 
-    layer* layers[2] = {&hidden, &output};
-    MLP model = {layers, 2};
+    layer* layers[3] = {&hidden, &hidden2, &output};
+    MLP model = {layers, 3};
+    print_model(&model);
 
     // XOR example
     // double X[4][2] = {{0,0}, {0,1}, {1,0}, {1,1}};
