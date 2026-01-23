@@ -1,5 +1,6 @@
-# C-MLP
+# C-MLP  
 This repository provides a minimalist implementation of a Multi-Layer Perceptron (MLP) written in C. It is designed to demonstrate the core mechanics of neural networks, including forward propagation and backpropagation, without the overhead of external libraries.
+
 ---
 ## Overview
 The goal of this project is to provide a transparent look at how neural networks function at a low level. By using only the C standard library, the code highlights the mathematical operations required for training and inference.
@@ -11,11 +12,12 @@ The goal of this project is to provide a transparent look at how neural networks
 - **Minimal Dependencies**: Requires only stdio.h, stdlib.h, time.h, and math.h.
 ---
 ## Mathematics
-The network uses the Sigmoid function as the activation for all neurons, defined as:
+The network uses the Sigmoid function as the activation for all neurons, defined as: 
 $$S(x) = \frac{1}{1 + e^{-x}}$$
 
-To facilitate learning through backpropagation, the derivative of the Sigmoid is utilized during the weight update phase:
+To facilitate learning through backpropagation, the derivative of the Sigmoid is utilized during the weight update phase: 
 $$S'(x) = S(x) \cdot (1 - S(x))$$
+
 ---
 ## Implementation Example: Decimal to Binary
 
