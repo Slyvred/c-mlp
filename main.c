@@ -16,15 +16,13 @@ typedef struct {
 // layer = parameters[], activation_fn, df_activation_fn
 // n_outputs = n_parameters = n_neurons
 // n_inputs
-
 typedef struct {
     // y = a_i * x_i + b
-    // len(inputs) == len(weights) == n_weights
-    double* inputs;
     double* weights;
     double n_weights;
     double output;
     double bias;
+    double delta; // Neuron error
 }neuron;
 
 // layer = list of neurons with activation function
@@ -36,9 +34,8 @@ typedef struct {
 }layer;
 
 typedef struct {
-    layer* input;
-    layer* hidden;
-    layer* output;
+    layer** layers; // list of layers pointers
+    int n_layers;
 } MLP;
 
 double sum(double inputs[], double weights[], double bias, int len) {
@@ -51,7 +48,7 @@ double sum(double inputs[], double weights[], double bias, int len) {
 }
 
 void init_neuron(neuron* neuron, int n_parameters) {
-    neuron->inputs = malloc(n_parameters * sizeof(double));
+    // neuron->inputs = malloc(n_parameters * sizeof(double));
     neuron->weights = malloc(n_parameters * sizeof(double));
     neuron->n_weights = n_parameters;
 
@@ -67,38 +64,27 @@ void init_layer(layer *layer, int n_neurons, int n_parameters, function *activat
     layer->n_neurons = n_neurons;
     layer->neurons = malloc(n_neurons * sizeof(neuron));
     layer->outputs = malloc(n_neurons * sizeof(neuron));
-    for (int i = 0; i < n_neurons; i++) {
-        init_neuron(&layer->neurons[i], n_parameters);
-    }
+
+    for (int i = 0; i < n_neurons; i++) { init_neuron(&layer->neurons[i], n_parameters); }
 }
 
 // Passage en avant (Forward Pass)
 void forward(MLP *m, double* inputs, int n_inputs) {
+    for (int i = 0; i < m->n_layers; i++) {
+        layer* l = m->layers[i];
+        double* last_layer_outputs = l->outputs;
 
-    // Input layer
-    layer* l = m->input;
-    for (int i = 0; i < l->n_neurons; i++) {
-        neuron* n = &l->neurons[i];
-        n->output = l->activation_function->f(sum(inputs, n->weights, n->bias, n->n_weights));
-        l->outputs[i] = n->output;
-    }
+        // For input layer, input is the actual input
+        if (i == 0) last_layer_outputs = inputs;
 
-    // Hidden layer
-    l = m->hidden;
-    double* last_layer_outputs = m->input->outputs;
-    for (int i = 0; i < l->n_neurons; i++) {
-        neuron* n = &l->neurons[i];
-        n->output = l->activation_function->f(sum(last_layer_outputs, n->weights, n->bias, n->n_weights));
-        l->outputs[i] = n->output;
-    }
+        for (int j = 0; j < l->n_neurons; j++) {
+            neuron* n = &l->neurons[j];
+            n->output = l->activation_function->f(sum(last_layer_outputs, n->weights, n->bias, n->n_weights));
+            l->outputs[j] = n->output;
+        }
 
-    // Output layer
-    l = m->output;
-    last_layer_outputs = m->hidden->outputs;
-    for (int i = 0; i < l->n_neurons; i++) {
-        neuron* n = &l->neurons[i];
-        n->output = l->activation_function->f(sum(last_layer_outputs, n->weights, n->bias, n->n_weights));
-        l->outputs[i] = n->output;
+        // For the next layers, the input is the previous layer's outputs
+        last_layer_outputs = l->outputs;
     }
 }
 
@@ -106,51 +92,70 @@ void forward(MLP *m, double* inputs, int n_inputs) {
 void train(MLP *m, double* target, double* raw_inputs, double lr) {
 
     // Calculate output layer error
-    layer* l = m->output;
-    double* delta_output = malloc(l->n_neurons * sizeof(double));
+    layer* l = m->layers[m->n_layers - 1];
     for (int i = 0; i < l->n_neurons; i++) {
         double output = l->neurons[i].output;
-        double error = target[i] - output;
-        delta_output[i] = error * l->activation_function->df(output);
+        neuron* n = &l->neurons[i];
+
+        // Error = (target - output) * f'(output)
+        n->delta = (target[i] - output) * l->activation_function->df(n->output);
     }
 
-    // Calculate hidden layer error
-    l = m->hidden;
-    double* delta_hidden = malloc(l->n_neurons * sizeof(double));
-    for (int i = 0; i < l->n_neurons; i++) {
-        double output = l->neurons[i].output;
-        double error = 0;
+    // Calculate layer error from last hidden layer to input
+    for (int i = m->n_layers - 2; i >= 0; i--) {
+        layer* curr_layer = m->layers[i];
+        layer* next_layer = m->layers[i + 1];
 
-        for (int j = 0; j < m->output->n_neurons; j++) {
-            error += delta_output[j] * m->output->neurons[j].weights[i];
+        for (int j = 0; j < curr_layer->n_neurons; j++) {
+            neuron* n = &curr_layer->neurons[j];
+            double error = 0;
+
+            // On somme les deltas de la couche suivante pondérés par les poids qui connectent à ce neurone
+            // Sum deltas of next layer weighted
+            for (int k = 0; k < next_layer->n_neurons; k++) {
+                neuron* next_n = &next_layer->neurons[k];
+                // next_n->weights[j] est le poids connectant le neurone j actuel au neurone k suivant
+                error += next_n->delta * next_n->weights[j];
+            }
+            n->delta = error * m->layers[0]->activation_function->df(n->output);
         }
-        delta_hidden[i] = error * l->activation_function->df(output);
     }
 
-    // Calculate input layer error
-    l = m->input;
-    double* delta_input = malloc(l->n_neurons * sizeof(double));
-    for (int i = 0; i < l->n_neurons; i++) {
-        double output = l->neurons[i].output;
-        double error = 0;
+    // Update weights for each layer
+    for (int i = 0; i < m->n_layers; i++) {
+        layer* l = m->layers[i];
+        double* inputs_for_layer;
 
-        for (int j = 0; j < m->hidden->n_neurons; j++) {
-            error += delta_hidden[j] * m->output->neurons[j].weights[i];
+        // For input layer, input is the actual input
+        if (i == 0) inputs_for_layer = raw_inputs;
+        else inputs_for_layer = m->layers[i - 1]->outputs;
+
+        // For each neuron
+        for (int j = 0; j < l->n_neurons; j++) {
+            neuron* n = &l->neurons[j];
+
+            // Update weights
+            for (int k = 0; k < n->n_weights; k++) {
+                // weight += learning_rate * delta * input
+                n->weights[k] += lr * n->delta * inputs_for_layer[k];
+            }
+
+            // Update bias
+            n->bias += lr * n->delta;
         }
-        delta_input[i] = error * l->activation_function->df(output);
     }
 }
 
 int main(int argc, char** argv) {
     srand(time(NULL)); // Pour la reproductibilité
-    function sig = {sigmoid, sigmoid_deriv};
 
-    layer input, hidden, output;
-    init_layer(&input, 1, 1, &sig);                     // 1 neuron with 1 weight
-    init_layer(&hidden, 8, input.n_neurons, &sig);      // 8 neurons with 1 weights each
+    layer hidden, output;
+    function sig = {sigmoid, sigmoid_deriv};            // Activation function
+    init_layer(&hidden, 8, 1, &sig);                    // 8 neurons with 1 weights each
     init_layer(&output, 4, hidden.n_neurons, &sig);     // 4 neurons with 8 weights each
-    MLP model = {&input, &hidden, &output};
 
+    layer* layers[2] = {&hidden, &output};
+    MLP model = {layers, 2};
 
     double dataset[16][4] = {
         {0,0,0,0}, {0,0,0,1}, {0,0,1,0}, {0,0,1,1},
@@ -173,7 +178,8 @@ int main(int argc, char** argv) {
         for (int i = 0; i < 16; i++) {
             double input[1] = { i / 15.0 }; // Normalisation de l'entrée
             forward(&model, input, 1);
-            printf("In: %f | Out: [%.8f %.8f %.8f %.8f]\n", input[0], model.output->neurons[0].output, model.output->neurons[1].output, model.output->neurons[2].output, model.output->neurons[3].output);
+            double* outputs = model.layers[model.n_layers - 1]->outputs;
+            printf("In: %d | Out: [%.4f %.4f %.4f %.4f]\n", i, outputs[0], outputs[1], outputs[2], outputs[3]);
             train(&model, dataset[i], input, lr);
         }
     }
