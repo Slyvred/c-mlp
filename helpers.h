@@ -3,6 +3,8 @@
 
 double sigmoid(double x);
 double sigmoid_deriv(double x);
+double linear(double x);
+double linear_deriv(double x);
 double ranged_rand(double min, double max);
 
 typedef struct {
@@ -28,14 +30,16 @@ typedef struct {
 }layer;
 
 typedef struct {
-    layer** layers; // list of layers pointers
+    layer* layers; // list of layers
     int n_layers;
 } MLP;
 
 double sum(double inputs[], double weights[], double bias, int len);
 void init_neuron(neuron* neuron, int n_parameters);
-void init_layer(layer *layer, int n_neurons, int n_parameters, function *activation_function);
+layer dense(int n_neurons, int n_parameters, function *activation_function);
 void forward(MLP *m, double* inputs, int n_inputs);
 void train(MLP *m, double* raw_inputs, double* target, double lr);
 int get_num_parameters(MLP* mlp);
-void print_model(MLP* model);
+void print_model(MLP* m);
+void print_output(MLP *m, double* input, int input_len, double *expected, int expected_len);
+void print_list(double* list, int len);

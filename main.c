@@ -29,15 +29,16 @@ int main(int argc, char** argv) {
     };
 
     // ======== MODEL ARCHITECTURE ========
-    // 2 hidden layers and one output layer
-    layer hidden, hidden2, output;
     function sig = {sigmoid, sigmoid_deriv};
-    init_layer(&hidden, 4, 1, &sig);
-    init_layer(&hidden2, 16, hidden.n_neurons, &sig);
-    init_layer(&output, 4, hidden2.n_neurons, &sig);
+    function id = {linear, linear_deriv};
 
-    layer* layers[3] = {&hidden, &hidden2, &output};
-    MLP model = {layers, 3};
+    layer layers[3] = {
+        dense(4, 1, &sig), // 1 is our input shape
+        dense(16, 4, &sig),
+        dense(4, 16, &sig), // 4 is our output shape
+    };
+    MLP model = { layers, sizeof(layers) / sizeof(layer) };
+
     print_model(&model);
 
     // Default values
@@ -62,9 +63,8 @@ int main(int argc, char** argv) {
     printf("\n--- Results ---\n");
     for (int i = 0; i < 16; i++) {
         forward(&model, X[i], 1);
-        double* outputs = model.layers[model.n_layers - 1]->outputs;
-        printf("In: %2d | Out: [%0.f %.0f %.0f %.0f] | Expected: [%0.f %0.f %0.f %0.f]\n",
-               i, outputs[0], outputs[1], outputs[2], outputs[3], y[i][0], y[i][1], y[i][2], y[i][3]);
+        double input[1] = {i};
+        print_output(&model, input, 1, y[i], 4);
     }
     return 0;
 }
