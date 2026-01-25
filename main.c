@@ -39,8 +39,8 @@ int main(int argc, char** argv) {
 
     // ======== MODEL ARCHITECTURE ========
     function sig = {sigmoid, sigmoid_deriv};
-    function lin = {linear, linear_deriv};
     function relu = {leaky_relu, leaky_relu_deriv};
+    // function lin = {linear, linear_deriv};
     // function softm = {softmax, linear_deriv};
 
     layer layers[3] = {
@@ -76,7 +76,6 @@ int main(int argc, char** argv) {
         // double input[1] = {i}; // Un-normalized input for readability
         double unnorm_out[1] = {i};
         print_output(&model, X[i], 4, unnorm_out, 1);
-        printf("\n");
     }
 
     return 0;

@@ -35,7 +35,7 @@ double linear(double x);
 double linear_deriv(double x);
 double leaky_relu(double x);
 double leaky_relu_deriv(double x);
-void softmax(double* inputs, double* outputs, int len);
+double* softmax(double* inputs, int len);
 double sum(double inputs[], double weights[], double bias, int len);
 
 // Actual ml stuff

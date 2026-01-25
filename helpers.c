@@ -33,7 +33,8 @@ double leaky_relu_deriv(double x) {
     return x >= 0 ? 1 : LEAKY_RELU_SLOPE;
 }
 
-void softmax(double* inputs, double* outputs, int len) {
+double* softmax(double* inputs, int len) {
+    double* outputs = malloc(len * sizeof(double));
     double denom = 0;
 
     for (int i = 0; i < len; i++) {
@@ -44,6 +45,7 @@ void softmax(double* inputs, double* outputs, int len) {
     for (int i = 0; i < len; i++) {
         outputs[i] /= denom;
     }
+    return outputs;
 }
 
 double sum(double inputs[], double weights[], double bias, int len) {
@@ -173,8 +175,8 @@ void print_model(MLP* m) {
 void print_list(double* list, int len) {
     printf("[");
     for (int i = 0; i < len; i++) {
-        if (i+1 >= len) printf("%0.f", list[i]);
-        else printf("%0.f ", list[i]);
+        if (i+1 >= len) printf("%.0f", list[i]);
+        else printf("%.0f ", list[i]);
     }
     printf("]");
 }
