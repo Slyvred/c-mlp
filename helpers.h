@@ -1,12 +1,5 @@
 #pragma once
 
-
-double sigmoid(double x);
-double sigmoid_deriv(double x);
-double linear(double x);
-double linear_deriv(double x);
-double ranged_rand(double min, double max);
-
 typedef struct {
     double (*f)(double);
     double (*df)(double);
@@ -34,12 +27,25 @@ typedef struct {
     int n_layers;
 } MLP;
 
+// Math functions
+double ranged_rand(double min, double max);
+double sigmoid(double x);
+double sigmoid_deriv(double x);
+double linear(double x);
+double linear_deriv(double x);
+double leaky_relu(double x);
+double leaky_relu_deriv(double x);
+void softmax(double* inputs, double* outputs, int len);
 double sum(double inputs[], double weights[], double bias, int len);
+
+// Actual ml stuff
 void init_neuron(neuron* neuron, int n_parameters);
 layer dense(int n_neurons, int n_parameters, function *activation_function);
 void forward(MLP *m, double* inputs, int n_inputs);
 void train(MLP *m, double* raw_inputs, double* target, double lr);
 int get_num_parameters(MLP* mlp);
+
+// Helpers
 void print_model(MLP* m);
 void print_output(MLP *m, double* input, int input_len, double *expected, int expected_len);
 void print_list(double* list, int len);
