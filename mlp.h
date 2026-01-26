@@ -34,6 +34,10 @@ typedef struct {
     int n_layers;
 } MLP;
 
+
+double leaky_relu(double x);
+double leaky_relu_deriv(double x);
+double* softmax(double* inputs, int len);
 double sum(double inputs[], double weights[], double bias, int len);
 void init_neuron(neuron* neuron, int n_parameters);
 layer dense(int n_neurons, int n_parameters, function *activation_function);

@@ -14,14 +14,14 @@ int main(int argc, char** argv) {
     // double y[4][1] = {{0},   {1},   {1},   {0}};
 
     // Decimal to binary converter
-    double X[16][1];
+    double y[16][1];
     for(int i = 0; i < 16; i++) {
         // Normalize inputs because our activation function is a sigmoid [0, 1]
         // If we don't do that it will saturate the outputs
-        X[i][0] = i / 15.0;
+        y[i][0] = i; // 15.0;
     }
 
-    double y[16][4] = {
+    double X[16][4] = {
         {0,0,0,0}, {0,0,0,1}, {0,0,1,0}, {0,0,1,1},
         {0,1,0,0}, {0,1,0,1}, {0,1,1,0}, {0,1,1,1},
         {1,0,0,0}, {1,0,0,1}, {1,0,1,0}, {1,0,1,1},
@@ -30,12 +30,13 @@ int main(int argc, char** argv) {
 
     // ======== MODEL ARCHITECTURE ========
     function sig = {sigmoid, sigmoid_deriv};
-    // function lin = {linear, linear_deriv};
+    function lin = {linear, linear_deriv};
+    function rel = {leaky_relu, leaky_relu_deriv};
 
     layer layers[3] = {
-        dense(4, 1, &sig), // 1 is our input shape
-        dense(16, 4, &sig),
-        dense(4, 16, &sig), // 4 is our output shape
+        dense(4, 4, &rel), // 1 is our input shape,
+        dense(16, 4, &rel),
+        dense(1, 16, &rel), // 4 is our output shape
     };
     MLP model = { layers, sizeof(layers) / sizeof(layer) };
 
@@ -63,8 +64,7 @@ int main(int argc, char** argv) {
     printf("\n--- Results ---\n");
     for (int i = 0; i < 16; i++) {
         forward(&model, X[i], 4);
-        double input[1] = {i}; // Un-normalized input for readability
-        print_output(&model, input, 1, y[i], 4);
+        print_output(&model, X[i], 4, y[i], 1);
     }
     return 0;
 }

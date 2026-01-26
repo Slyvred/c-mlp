@@ -3,11 +3,36 @@
 #include <stdlib.h>
 #include <math.h>
 
+#define LEAKY_RELU_SLOPE 0.01
+
 double sigmoid(double x) { return 1.0 / (1.0 + exp(-x)); }
 double sigmoid_deriv(double x) { return x * (1.0 - x); }
 double ranged_rand(double min, double max) { return ((double)rand() / RAND_MAX) * (max - min) + min; }
 double linear(double x) { return x; };
 double linear_deriv(double x) { return 1; };
+
+double leaky_relu(double x) {
+    return x >= 0 ? x : LEAKY_RELU_SLOPE * x;
+}
+
+double leaky_relu_deriv(double x) {
+    return x >= 0 ? 1 : LEAKY_RELU_SLOPE;
+}
+
+double* softmax(double* inputs, int len) {
+    double* outputs = malloc(len * sizeof(double));
+    double denom = 0;
+
+    for (int i = 0; i < len; i++) {
+        outputs[i] = exp(inputs[i]);
+        denom += outputs[i];
+    }
+
+    for (int i = 0; i < len; i++) {
+        outputs[i] /= denom;
+    }
+    return outputs;
+}
 
 double sum(double inputs[], double weights[], double bias, int len) {
     double sum = 0;
