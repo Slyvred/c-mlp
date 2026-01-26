@@ -2,6 +2,7 @@
 #include <stdlib.h>
 // #include <time.h>
 #include "mlp.h"
+// #include "mnist.h"
 
 int main(int argc, char** argv) {
     srand(42); // Pour la reproductibilité
