@@ -1,12 +1,5 @@
 #pragma once
 
-
-double sigmoid(double x);
-double sigmoid_deriv(double x);
-double linear(double x);
-double linear_deriv(double x);
-double ranged_rand(double min, double max);
-
 typedef struct {
     double (*f)(double);
     double (*df)(double);
@@ -28,6 +21,13 @@ typedef struct {
     function* activation_function;
     double* outputs; // Output of each neuron of the layer
 }layer;
+
+double sigmoid(double x);
+double sigmoid_deriv(double x);
+double linear(double x);
+double linear_deriv(double x);
+double ranged_rand(double min, double max);
+
 
 typedef struct {
     layer* layers; // list of layers

@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
-#include "helpers.h"
+#include "mlp.h"
 
 int main(int argc, char** argv) {
     srand(42); // Pour la reproductibilité

@@ -1,4 +1,4 @@
-#include "helpers.h"
+#include "mlp.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
@@ -86,7 +86,7 @@ void train(MLP *m, double* raw_inputs, double* target, double lr) {
                 // next_n->weights[j] is the weight connecting the current neuron with the next neuron k
                 error += next_n->delta * next_n->weights[j];
             }
-            n->delta = error * m->layers[0].activation_function->df(n->output);
+            n->delta = error * curr_layer->activation_function->df(n->output);
         }
     }
 
