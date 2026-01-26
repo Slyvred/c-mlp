@@ -144,9 +144,8 @@ int get_num_parameters(MLP* mlp) {
     int parameters = 0;
     for (int i = 0; i < mlp->n_layers; i++) {
         layer* l = &mlp->layers[i];
-        parameters += l->n_neurons * l->neurons[0].n_weights;
+        parameters += l->n_neurons * (l->neurons[0].n_weights + 1); // + 1 for bias
     }
-
     return parameters;
 }
 
@@ -178,4 +177,16 @@ void print_output(MLP *m, double* input, int input_len, double *expected, int ex
     printf(" | Expected: ");
     print_list(expected, expected_len);
     printf("\n");
+}
+
+void normalize(double* values, int length, double max) {
+    for (int i = 0; i < length; i++) {
+        values[i] /= (double)max;
+    }
+}
+
+void denormalize(double* values, int length, double max) {
+    for (int i = 0; i < length; i++) {
+        values[i] *= (double)max;
+    }
 }

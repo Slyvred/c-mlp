@@ -39,6 +39,8 @@ double leaky_relu(double x);
 double leaky_relu_deriv(double x);
 double* softmax(double* inputs, int len);
 double sum(double inputs[], double weights[], double bias, int len);
+void normalize(double* values, int length, double max);
+void denormalize(double* values, int length, double max);
 void init_neuron(neuron* neuron, int n_parameters);
 layer dense(int n_neurons, int n_parameters, function *activation_function);
 void forward(MLP *m, double* inputs, int n_inputs);
