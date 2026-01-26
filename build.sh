@@ -1,3 +1,3 @@
 #!/bin/bash
 
-gcc -O3 -Wall -o main main.c mlp.c -lm
+gcc -O3 -Wall -o main src/*c -lm

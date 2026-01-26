@@ -176,8 +176,8 @@ void print_model(MLP* m) {
 void print_list(double* list, int len) {
     printf("[");
     for (int i = 0; i < len; i++) {
-        if (i+1 >= len) printf("%.4f", list[i]);
-        else printf("%.4f ", list[i]);
+        if (i+1 >= len) printf("%.2f", list[i]);
+        else printf("%.2f ", list[i]);
     }
     printf("]");
 }
