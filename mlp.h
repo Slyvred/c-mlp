@@ -1,8 +1,8 @@
 #pragma once
 
 typedef struct {
-    double (*f)(double);
-    double (*df)(double);
+    void (*f)(double* inputs, double* outputs, int len);
+    void (*df)(double* inputs, double* outputs, int len);
 }function;
 
 typedef struct {
@@ -19,8 +19,14 @@ typedef struct {
     int n_neurons;
     neuron* neurons;
     function* activation_function;
+    double* raw_outputs;
     double* outputs; // Output of each neuron of the layer
 }layer;
+
+typedef struct {
+    layer* layers; // list of layers
+    int n_layers;
+} MLP;
 
 double sigmoid(double x);
 double sigmoid_deriv(double x);
@@ -28,16 +34,9 @@ double linear(double x);
 double linear_deriv(double x);
 double ranged_rand(double min, double max);
 
-
-typedef struct {
-    layer* layers; // list of layers
-    int n_layers;
-} MLP;
-
-
-double leaky_relu(double x);
-double leaky_relu_deriv(double x);
-double* softmax(double* inputs, int len);
+void leaky_relu(double* inputs, double* outputs, int len);
+void leaky_relu_deriv(double* inputs, double* outputs, int len);
+void softmax(double* inputs, double* outputs, int len);
 double sum(double inputs[], double weights[], double bias, int len);
 void normalize(double* values, int length, double max);
 void denormalize(double* values, int length, double max);
@@ -49,3 +48,4 @@ int get_num_parameters(MLP* mlp);
 void print_model(MLP* m);
 void print_output(MLP *m, double* input, int input_len, double *expected, int expected_len);
 void print_list(double* list, int len);
+double** one_hot(double* inputs, int n_classes);

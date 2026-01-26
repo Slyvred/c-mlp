@@ -11,27 +11,35 @@ double ranged_rand(double min, double max) { return ((double)rand() / RAND_MAX) 
 double linear(double x) { return x; };
 double linear_deriv(double x) { return 1; };
 
-double leaky_relu(double x) {
-    return x >= 0 ? x : LEAKY_RELU_SLOPE * x;
-}
-
-double leaky_relu_deriv(double x) {
-    return x >= 0 ? 1 : LEAKY_RELU_SLOPE;
-}
-
-double* softmax(double* inputs, int len) {
-    double* outputs = malloc(len * sizeof(double));
-    double denom = 0;
-
+void leaky_relu(double* inputs, double* outputs, int len) {
     for (int i = 0; i < len; i++) {
-        outputs[i] = exp(inputs[i]);
+        outputs[i] = inputs[i] >= 0 ? inputs[i] : LEAKY_RELU_SLOPE * inputs[i];
+    }
+}
+
+void leaky_relu_deriv(double* inputs, double* outputs, int len) {
+    for (int i = 0; i < len; i++) {
+        outputs[i] = inputs[i] >= 0 ? 1 : LEAKY_RELU_SLOPE;
+    }
+}
+
+void softmax(double* inputs, double* outputs, int len) {
+    double max_val = inputs[0];
+    for (int i = 1; i < len; i++) {
+        if (inputs[i] > max_val) max_val = inputs[i];
+    }
+
+    double denom = 0;
+    for (int i = 0; i < len; i++) {
+        outputs[i] = exp(inputs[i] - max_val);
         denom += outputs[i];
     }
+
+    if (denom < 1e-20) denom = 1e-20;
 
     for (int i = 0; i < len; i++) {
         outputs[i] /= denom;
     }
-    return outputs;
 }
 
 double sum(double inputs[], double weights[], double bias, int len) {
@@ -61,6 +69,7 @@ layer dense(int n_neurons, int n_parameters, function *activation_function) {
     layer.n_neurons = n_neurons;
     layer.neurons = malloc(n_neurons * sizeof(neuron));
     layer.outputs = malloc(n_neurons * sizeof(double));
+    layer.raw_outputs = malloc(n_neurons * sizeof(double));
 
     for (int i = 0; i < n_neurons; i++) { init_neuron(&layer.neurons[i], n_parameters); }
     return layer;
@@ -78,9 +87,10 @@ void forward(MLP *m, double* inputs, int n_inputs) {
 
         for (int j = 0; j < l->n_neurons; j++) {
             neuron* n = &l->neurons[j];
-            n->output = l->activation_function->f(sum(layer_inputs, n->weights, n->bias, n->n_weights));
-            l->outputs[j] = n->output;
+            n->output = sum(layer_inputs, n->weights, n->bias, n->n_weights);
+            l->raw_outputs[j] = n->output;
         }
+        l->activation_function->f(l->raw_outputs, l->outputs, l->n_neurons);
     }
 }
 
@@ -89,17 +99,20 @@ void train(MLP *m, double* raw_inputs, double* target, double lr) {
     // Calculate output layer error
     layer* l = &m->layers[m->n_layers - 1];
     for (int i = 0; i < l->n_neurons; i++) {
-        double output = l->neurons[i].output;
+        // double output = l->neurons[i].output;
         neuron* n = &l->neurons[i];
 
         // Error = (target - output) * f'(output)
-        n->delta = (target[i] - output) * l->activation_function->df(n->output);
+        n->delta = (l->outputs[i] - target[i]);// * l->activation_function->df(n->output);
     }
 
     // Calculate layer error from last hidden layer to input
     for (int i = m->n_layers - 2; i >= 0; i--) {
         layer* curr_layer = &m->layers[i];
         layer* next_layer = &m->layers[i + 1];
+
+        double* derivatives = malloc(curr_layer->n_neurons * sizeof(double));
+        curr_layer->activation_function->df(curr_layer->raw_outputs, derivatives, curr_layer->n_neurons);
 
         for (int j = 0; j < curr_layer->n_neurons; j++) {
             neuron* n = &curr_layer->neurons[j];
@@ -111,8 +124,10 @@ void train(MLP *m, double* raw_inputs, double* target, double lr) {
                 // next_n->weights[j] is the weight connecting the current neuron with the next neuron k
                 error += next_n->delta * next_n->weights[j];
             }
-            n->delta = error * curr_layer->activation_function->df(n->output);
+            // n->delta = error * curr_layer->activation_function->df(n->output);
+            n->delta = error * derivatives[j];
         }
+        free(derivatives);
     }
 
     // Update weights for each layer
@@ -131,11 +146,11 @@ void train(MLP *m, double* raw_inputs, double* target, double lr) {
             // Update weights
             for (int k = 0; k < n->n_weights; k++) {
                 // weight += learning_rate * delta * input
-                n->weights[k] += lr * n->delta * inputs_for_layer[k];
+                n->weights[k] -= lr * n->delta * inputs_for_layer[k];
             }
 
             // Update bias
-            n->bias += lr * n->delta;
+            n->bias -= lr * n->delta;
         }
     }
 }
@@ -161,8 +176,8 @@ void print_model(MLP* m) {
 void print_list(double* list, int len) {
     printf("[");
     for (int i = 0; i < len; i++) {
-        if (i+1 >= len) printf("%0.f", list[i]);
-        else printf("%0.f ", list[i]);
+        if (i+1 >= len) printf("%.4f", list[i]);
+        else printf("%.4f ", list[i]);
     }
     printf("]");
 }
@@ -181,12 +196,12 @@ void print_output(MLP *m, double* input, int input_len, double *expected, int ex
 
 void normalize(double* values, int length, double max) {
     for (int i = 0; i < length; i++) {
-        values[i] /= (double)max;
+        values[i] /= max;
     }
 }
 
 void denormalize(double* values, int length, double max) {
     for (int i = 0; i < length; i++) {
-        values[i] *= (double)max;
+        values[i] *= max;
     }
 }
