@@ -72,7 +72,7 @@ idx1 read_labels_mnist(const char* path) {
 
 void get_mnist_image_norm(double* output, idx3* dataset, int index) {
     for (int i = 0; i < 784; i++) {
-        output[i] = (double)dataset->images[i];
+        output[i] = (double)dataset->images[i+784*index];
     }
     normalize(output, 784, 255.0);
 }

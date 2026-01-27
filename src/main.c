@@ -33,10 +33,11 @@ int main(int argc, char** argv) {
     function rel = {leaky_relu, leaky_relu_deriv};
     function softm = {softmax, NULL};
 
-    layer layers[3] = {
+    layer layers[4] = {
         dense(128, 784, &rel),
         dense(64, 128, &rel),
-        dense(10, 64, &softm), // 1 is our output shape
+        dense(32, 64, &rel),
+        dense(10, 32, &softm),
     };
     MLP model = { layers, sizeof(layers) / sizeof(layer) };
 
@@ -52,25 +53,23 @@ int main(int argc, char** argv) {
     }
 
     double image_buffer[784];
-    printf("\n --- Training model ---\n");
     int i_copy = 0;
+    printf("\n --- Training model ---\n");
     for (int epoch = 0; epoch < epochs; epoch++) {
-        for (int i = 0; i < x_train.n_images / 10; i++) {
+        for (int i = 0; i < x_train.n_images / 5; i++) {
             // int i = rand() % 16; // Random input
             get_mnist_image_norm(image_buffer, &x_train, i);
             forward(&model, image_buffer, 784);
             double* actual = one_hot(y_train.labels[i], 10);
             train(&model, image_buffer, actual, lr);
-            i_copy = i;
 
+            i_copy = i;
             free(actual);
         }
         if (epoch % (int)(0.1 * epochs) == 0) {
             double* outputs = model.layers[model.n_layers - 1].outputs;
             double* actual = one_hot(y_train.labels[i_copy], 10);
-            double error = mse(outputs, actual, 10);
-            printf("Epoch %d - MSE: %f\n", epoch, error);
-
+            printf("Epoch %d\n", epoch);
             free(actual);
         }
     }
@@ -80,7 +79,7 @@ int main(int argc, char** argv) {
     idx1 y_test = read_labels_mnist("/Users/remi/Documents/datasets/MNIST/t10k-labels-idx1-ubyte");
 
     printf("\n--- Results ---\n");
-    for (int i = 0; i < x_test.n_images / 10; i++) {
+    for (int i = 0; i < x_test.n_images / 5; i++) {
         get_mnist_image_norm(image_buffer, &x_test, i);
         forward(&model, image_buffer, 784);
         double* outputs = model.layers[model.n_layers - 1].outputs;
