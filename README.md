@@ -22,7 +22,8 @@ $$f(x) = \max(\epsilon x, x)$$
 
 With its derivative being:
 
-$$f'(x) = \max(\epsilon, 1)$$
+$$f'(x) = \max(\epsilon, 1)$$  
+
 With $\epsilon$ being a small constant, e.g. $0.01$
 
 To facilitate learning through backpropagation, the derivative of the function is utilized during the weight update phase.
