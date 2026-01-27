@@ -7,9 +7,9 @@
 
 int main(int argc, char** argv) {
     srand(42); // Pour la reproductibilité
-
-    idx3 x_train = read_images_mnist("/Users/remi/Documents/datasets/MNIST/train-images-idx3-ubyte");
-    idx1 y_train = read_labels_mnist("/Users/remi/Documents/datasets/MNIST/train-labels-idx1-ubyte");
+    getenv("IMAGES_TRAIN_PATH");
+    idx3 x_train = read_images_mnist(getenv("IMAGES_TRAIN_PATH"));
+    idx1 y_train = read_labels_mnist(getenv("LABELS_TRAIN_PATH"));
 
     // -------- MODEL ARCHITECTURE --------
     // function sig = {sigmoid, sigmoid_deriv};
@@ -51,8 +51,8 @@ int main(int argc, char** argv) {
     printf("--- End ---\n");
 
     // Test using unseen data
-    idx3 x_test = read_images_mnist("/Users/remi/Documents/datasets/MNIST/t10k-images-idx3-ubyte");
-    idx1 y_test = read_labels_mnist("/Users/remi/Documents/datasets/MNIST/t10k-labels-idx1-ubyte");
+    idx3 x_test = read_images_mnist(getenv("IMAGES_TEST_PATH"));
+    idx1 y_test = read_labels_mnist(getenv("LABELS_TEST_PATH"));
 
     printf("\n--- Results ---\n");
     for (int i = 0; i < x_test.n_images / 5; i++) {
