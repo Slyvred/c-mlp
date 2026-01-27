@@ -8,8 +8,18 @@
 double sigmoid(double x) { return 1.0 / (1.0 + exp(-x)); }
 double sigmoid_deriv(double x) { return x * (1.0 - x); }
 double ranged_rand(double min, double max) { return ((double)rand() / RAND_MAX) * (max - min) + min; }
-double linear(double x) { return x; };
-double linear_deriv(double x) { return 1; };
+
+void linear(double* inputs, double* outputs, int len) {
+    for (int i = 0; i < len; i++) {
+        outputs[i] = inputs[i];
+    }
+}
+
+void linear_deriv(double* inputs, double* outputs, int len) {
+    for (int i = 0; i < len; i++) {
+        outputs[i] = 1.0;
+    }
+}
 
 void leaky_relu(double* inputs, double* outputs, int len) {
     for (int i = 0; i < len; i++) {
@@ -56,11 +66,13 @@ void init_neuron(neuron* neuron, int n_parameters) {
     neuron->weights = malloc(n_parameters * sizeof(double));
     neuron->n_weights = n_parameters;
 
+    double limit = sqrt(2.0 / n_parameters);
+
     // Random init value for neurons and bias
     for (int i = 0; i < n_parameters; i++) {
-        neuron->weights[i] = ranged_rand(-0.5, 0.5);
+        neuron->weights[i] = ranged_rand(-limit, limit);
     }
-    neuron->bias = ranged_rand(-0.5, 0.5);
+    neuron->bias = 0;
 }
 
 layer dense(int n_neurons, int n_parameters, function *activation_function) {
@@ -70,6 +82,7 @@ layer dense(int n_neurons, int n_parameters, function *activation_function) {
     layer.neurons = malloc(n_neurons * sizeof(neuron));
     layer.outputs = malloc(n_neurons * sizeof(double));
     layer.raw_outputs = malloc(n_neurons * sizeof(double));
+    layer.derivatives = malloc(n_neurons * sizeof(double));
 
     for (int i = 0; i < n_neurons; i++) { init_neuron(&layer.neurons[i], n_parameters); }
     return layer;
@@ -77,6 +90,7 @@ layer dense(int n_neurons, int n_parameters, function *activation_function) {
 
 // Passage en avant (Forward Pass)
 void forward(MLP *m, double* inputs, int n_inputs) {
+
     for (int i = 0; i < m->n_layers; i++) {
         layer* l = &m->layers[i];
         double* layer_inputs;
@@ -111,8 +125,7 @@ void train(MLP *m, double* raw_inputs, double* target, double lr) {
         layer* curr_layer = &m->layers[i];
         layer* next_layer = &m->layers[i + 1];
 
-        double* derivatives = malloc(curr_layer->n_neurons * sizeof(double));
-        curr_layer->activation_function->df(curr_layer->raw_outputs, derivatives, curr_layer->n_neurons);
+        curr_layer->activation_function->df(curr_layer->raw_outputs, curr_layer->derivatives, curr_layer->n_neurons);
 
         for (int j = 0; j < curr_layer->n_neurons; j++) {
             neuron* n = &curr_layer->neurons[j];
@@ -125,9 +138,8 @@ void train(MLP *m, double* raw_inputs, double* target, double lr) {
                 error += next_n->delta * next_n->weights[j];
             }
             // n->delta = error * curr_layer->activation_function->df(n->output);
-            n->delta = error * derivatives[j];
+            n->delta = error * curr_layer->derivatives[j];
         }
-        free(derivatives);
     }
 
     // Update weights for each layer
@@ -145,7 +157,7 @@ void train(MLP *m, double* raw_inputs, double* target, double lr) {
 
             // Update weights
             for (int k = 0; k < n->n_weights; k++) {
-                // weight += learning_rate * delta * input
+                // weight -= learning_rate * delta * input
                 n->weights[k] -= lr * n->delta * inputs_for_layer[k];
             }
 
@@ -204,4 +216,27 @@ void denormalize(double* values, int length, double max) {
     for (int i = 0; i < length; i++) {
         values[i] *= max;
     }
+}
+
+double* one_hot(int input, int n_classes) {
+    double* one_hot = calloc(n_classes, sizeof(double));
+    one_hot[input] = 1.0;
+    return one_hot;
+}
+
+int index_of_max(double* array, int len) {
+    int max = 0;
+    for (int i = 0; i < len; i++) {
+        if (array[i] > array[max]) max = i;
+    }
+    return max;
+}
+
+double mse(double* predicted, double* actual, int length) {
+    double mse = 0;
+    for (int i = 0; i < length; i++) {
+        mse += (actual[i] - predicted[i])*(actual[i] - predicted[i]);
+    }
+    mse /= (double)length;
+    return mse;
 }

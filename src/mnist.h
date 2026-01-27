@@ -17,3 +17,4 @@ typedef struct {
 
 idx3 read_images_mnist(const char* path);
 idx1 read_labels_mnist(const char* path);
+void get_mnist_image_norm(double* output, idx3* dataset, int index);

@@ -1,12 +1,14 @@
 #include "mnist.h"
+#include "mlp.h"
 #include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <arpa/inet.h> // Endian swapping
+#include <string.h>
 
 idx3 read_images_mnist(const char* path) {
     FILE* file = fopen(path, "rb");
-    idx3 dataset;
+    idx3 dataset = { 0, 0, 0, 0, NULL };
 
     if (file == NULL) {
         printf("Failed to open file, check path or permissions.\n");
@@ -39,7 +41,7 @@ idx3 read_images_mnist(const char* path) {
 
 idx1 read_labels_mnist(const char* path) {
     FILE* file = fopen(path, "rb");
-    idx1 dataset;
+    idx1 dataset = {0, 0, NULL};
 
     if (file == NULL) {
         printf("Failed to open file, check path or permissions.\n");
@@ -66,4 +68,11 @@ idx1 read_labels_mnist(const char* path) {
     fclose(file);
 
     return dataset;
+}
+
+void get_mnist_image_norm(double* output, idx3* dataset, int index) {
+    for (int i = 0; i < 784; i++) {
+        output[i] = (double)dataset->images[i];
+    }
+    normalize(output, 784, 255.0);
 }
