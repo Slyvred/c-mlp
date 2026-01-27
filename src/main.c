@@ -3,6 +3,7 @@
 // #include <time.h>
 #include "mlp.h"
 #include "mnist.h"
+#include "math_functions.h"
 // #include "mnist.h"
 
 int main(int argc, char** argv) {
@@ -29,15 +30,15 @@ int main(int argc, char** argv) {
 
     // ======== MODEL ARCHITECTURE ========
     // function sig = {sigmoid, sigmoid_deriv};
-    function lin = {linear, linear_deriv};
+    // function lin = {linear, linear_deriv};
     function rel = {leaky_relu, leaky_relu_deriv};
     function softm = {softmax, NULL};
 
     layer layers[4] = {
-        dense(128, 784, &rel),
+        dense(256, 784, &rel),
+        dense(128, 256, &rel),
         dense(64, 128, &rel),
-        dense(32, 64, &rel),
-        dense(10, 32, &softm),
+        dense(10, 64, &softm),
     };
     MLP model = { layers, sizeof(layers) / sizeof(layer) };
 
@@ -53,7 +54,7 @@ int main(int argc, char** argv) {
     }
 
     double image_buffer[784];
-    int i_copy = 0;
+    // int i_copy = 0;
     printf("\n --- Training model ---\n");
     for (int epoch = 0; epoch < epochs; epoch++) {
         for (int i = 0; i < x_train.n_images / 5; i++) {
@@ -63,14 +64,16 @@ int main(int argc, char** argv) {
             double* actual = one_hot(y_train.labels[i], 10);
             train(&model, image_buffer, actual, lr);
 
-            i_copy = i;
+            // i_copy = i;
             free(actual);
         }
         if (epoch % (int)(0.1 * epochs) == 0) {
-            double* outputs = model.layers[model.n_layers - 1].outputs;
-            double* actual = one_hot(y_train.labels[i_copy], 10);
-            printf("Epoch %d\n", epoch);
-            free(actual);
+            printf("Epoch: %d...\n", epoch);
+            // double* outputs = model.layers[model.n_layers - 1].outputs;
+            // double* actual = one_hot(y_train.labels[i_copy], 10);
+            // double loss = categ_cross_entropy(outputs, actual, 10);
+            // printf("Epoch %d - Loss: %f\n", epoch, loss);
+            // free(actual);
         }
     }
     printf("--- End ---\n");

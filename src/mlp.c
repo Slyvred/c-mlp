@@ -2,63 +2,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
+#include "math_functions.h"
 
-#define LEAKY_RELU_SLOPE 0.01
-
-double sigmoid(double x) { return 1.0 / (1.0 + exp(-x)); }
-double sigmoid_deriv(double x) { return x * (1.0 - x); }
-double ranged_rand(double min, double max) { return ((double)rand() / RAND_MAX) * (max - min) + min; }
-
-void linear(double* inputs, double* outputs, int len) {
-    for (int i = 0; i < len; i++) {
-        outputs[i] = inputs[i];
-    }
-}
-
-void linear_deriv(double* inputs, double* outputs, int len) {
-    for (int i = 0; i < len; i++) {
-        outputs[i] = 1.0;
-    }
-}
-
-void leaky_relu(double* inputs, double* outputs, int len) {
-    for (int i = 0; i < len; i++) {
-        outputs[i] = inputs[i] >= 0 ? inputs[i] : LEAKY_RELU_SLOPE * inputs[i];
-    }
-}
-
-void leaky_relu_deriv(double* inputs, double* outputs, int len) {
-    for (int i = 0; i < len; i++) {
-        outputs[i] = inputs[i] >= 0 ? 1 : LEAKY_RELU_SLOPE;
-    }
-}
-
-void softmax(double* inputs, double* outputs, int len) {
-    double max_val = inputs[0];
-    for (int i = 1; i < len; i++) {
-        if (inputs[i] > max_val) max_val = inputs[i];
-    }
-
-    double denom = 0;
-    for (int i = 0; i < len; i++) {
-        outputs[i] = exp(inputs[i] - max_val);
-        denom += outputs[i];
-    }
-
-    if (denom < 1e-20) denom = 1e-20;
-
-    for (int i = 0; i < len; i++) {
-        outputs[i] /= denom;
-    }
-}
-
-double sum(double inputs[], double weights[], double bias, int len) {
-    double sum = 0;
-    for (int i = 0; i < len; i++) {
-        sum += inputs[i] * weights[i];
-    }
-    sum += bias;
-    return sum;
+double ranged_rand(double min, double max) {
+    return ((double)rand() / RAND_MAX) * (max - min) + min;
 }
 
 void init_neuron(neuron* neuron, int n_parameters) {
@@ -206,37 +153,8 @@ void print_output(MLP *m, double* input, int input_len, double *expected, int ex
     printf("\n");
 }
 
-void normalize(double* values, int length, double max) {
-    for (int i = 0; i < length; i++) {
-        values[i] /= max;
-    }
-}
-
-void denormalize(double* values, int length, double max) {
-    for (int i = 0; i < length; i++) {
-        values[i] *= max;
-    }
-}
-
 double* one_hot(int input, int n_classes) {
     double* one_hot = calloc(n_classes, sizeof(double));
     one_hot[input] = 1.0;
     return one_hot;
-}
-
-int index_of_max(double* array, int len) {
-    int max = 0;
-    for (int i = 0; i < len; i++) {
-        if (array[i] > array[max]) max = i;
-    }
-    return max;
-}
-
-double mse(double* predicted, double* actual, int length) {
-    double mse = 0;
-    for (int i = 0; i < length; i++) {
-        mse += (actual[i] - predicted[i])*(actual[i] - predicted[i]);
-    }
-    mse /= (double)length;
-    return mse;
 }

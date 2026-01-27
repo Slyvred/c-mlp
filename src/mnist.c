@@ -1,5 +1,5 @@
 #include "mnist.h"
-#include "mlp.h"
+#include "math_functions.h"
 #include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
