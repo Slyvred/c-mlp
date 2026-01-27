@@ -7,16 +7,29 @@ The goal of this project is to provide a transparent look at how neural networks
 
 ### Features
 - **Customizable Architecture**: Support for multiple hidden layers with varying numbers of neurons.
-- **Activation Functions**: Built-in Sigmoid activation and its derivative.
+- **Activation Functions**:
+  - Sigmoid
+  - LeakyRelu
+  - Linear
+  - Softmax
 - **Stochastic Training**: Implementation of basic gradient descent.
-- **Minimal Dependencies**: Requires only stdio.h, stdlib.h, time.h, and math.h.
+- **Minimal Dependencies**: Requires only stdio.h, stdlib.h, time.h, math.h, arpa/inet.h (for endian swapping only).
 ---
 ## Mathematics
-The network uses the Sigmoid function as the activation for all neurons, defined as: 
-$$S(x) = \frac{1}{1 + e^{-x}}$$
+The network uses the LeakyRelu function as the activation for all hidden layers, defined as:
 
-To facilitate learning through backpropagation, the derivative of the Sigmoid is utilized during the weight update phase: 
-$$S'(x) = S(x) \cdot (1 - S(x))$$
+$$f(x) = \max(\epsilon x, x)$$
+
+With its derivative being:
+
+$$f'(x) = \max(\epsilon, 1)$$
+With $\epsilon$ being a small constant, e.g. $0.01$
+
+To facilitate learning through backpropagation, the derivative of the function is utilized during the weight update phase.
+
+As we are doing classification in the example provided in [main.c](src/main.c), the activation function of the output layer is the Softmax function, defined as:  
+
+$$softmax(z)_{i} = \frac{e^{z_{i}}}{\sum_{j=1}^{N} e^{z_{j}}}$$
 
 ## References
 - https://www.geeksforgeeks.org/deep-learning/multi-layer-perceptron-learning-in-tensorflow/
@@ -27,55 +40,66 @@ $$S'(x) = S(x) \cdot (1 - S(x))$$
   - Backprop
 
 ---
-## Implementation Example: Decimal to Binary
+## Implementation Example: MNIST Dataset
 
-The provided main.c contains a model trained to convert decimal numbers (0 to 15) into their 4-bit binary representation.
+The provided [main.c](src/main.c) contains a model trained to classify written digits from 0 to 9 to their correct label.
 
-**Data Normalization**: To prevent neuron saturation and ensure efficient learning, the input decimal values are normalized to a range of $[0, 1]$ by dividing them by the maximum value (15.0).
+**Data Normalization**: To prevent neuron saturation and ensure efficient learning, the value of each pixel from the input image is normalized to a range in $[0, 1]$ by dividing it by the maximum value of a pixel (255).
+
+**One Hot Encoding**: Since we want to predict the class we won't output the label directly. We instead output a probability distribution (with the softmax function) of the input belonging to a label. So each label is converted in a probability vector like so:
+
+| Label | One Hot Encoded                |
+|-------|--------------------------------|
+| 0     | [1, 0, 0, 0, 0, 0, 0, 0, 0, 0] |
+| 1     | [0, 1, 0, 0, 0, 0, 0, 0, 0, 0] |
+| 2     | [0, 0, 1, 0, 0, 0, 0, 0, 0, 0] |
+| 3     | [0, 0, 0, 1, 0, 0, 0, 0, 0, 0] |
+| ...   | ...                            |
 
 **Model Configuration**:
-- **Input**: 1 neuron (normalized decimal).
-- **Hidden Layer 1**: 4 neurons.
-- **Hidden Layer 2**: 16 neurons.
-- **Output Layer**: 4 neurons (binary bits).
+- **Input layer**: 256 neurons -> relu
+- **First hidden layer**: 128 neurons -> relu
+- **Second hidden layer**: 64 neurons -> relu
+- **Output Layer**: 10 neurons (= 10 classes) -> softmax.
 
 ### Example Output
-```
-./main 250000 0.5
 
-Layer 0: Neurons: 4 | Parameters: 1
-Layer 1: Neurons: 16 | Parameters: 4
-Layer 2: Neurons: 4 | Parameters: 16
-Total number of parameters: 132
+```
+./main 256 0.01
+
+Layer 0: Neurons: 256 | Parameters: 784
+Layer 1: Neurons: 128 | Parameters: 256
+Layer 2: Neurons: 64 | Parameters: 128
+Layer 3: Neurons: 10 | Parameters: 64
+Total number of parameters: 242762
 
  --- Training model ---
-Epoch 0...
-Epoch 25000...
-Epoch 50000...
-Epoch 75000...
-Epoch 100000...
-Epoch 125000...
-Epoch 150000...
-Epoch 175000...
-Epoch 200000...
-Epoch 225000...
+Epoch: 0...
+Epoch: 25...
+Epoch: 50...
+Epoch: 75...
+Epoch: 100...
+Epoch: 125...
+Epoch: 150...
+Epoch: 175...
+Epoch: 200...
+Epoch: 225...
+Epoch: 250...
 --- End ---
 
 --- Results ---
-In:  0 | Out: [0 0 0 0] | Expected: [0 0 0 0]
-In:  1 | Out: [0 0 0 1] | Expected: [0 0 0 1]
-In:  2 | Out: [0 0 1 0] | Expected: [0 0 1 0]
-In:  3 | Out: [0 0 1 1] | Expected: [0 0 1 1]
-In:  4 | Out: [0 1 0 0] | Expected: [0 1 0 0]
-In:  5 | Out: [0 1 0 1] | Expected: [0 1 0 1]
-In:  6 | Out: [0 1 1 0] | Expected: [0 1 1 0]
-In:  7 | Out: [0 1 1 1] | Expected: [0 1 1 1]
-In:  8 | Out: [1 0 0 0] | Expected: [1 0 0 0]
-In:  9 | Out: [1 0 0 1] | Expected: [1 0 0 1]
-In: 10 | Out: [1 0 1 0] | Expected: [1 0 1 0]
-In: 11 | Out: [1 0 1 1] | Expected: [1 0 1 1]
-In: 12 | Out: [1 1 0 0] | Expected: [1 1 0 0]
-In: 13 | Out: [1 1 0 1] | Expected: [1 1 0 1]
-In: 14 | Out: [1 1 1 0] | Expected: [1 1 1 0]
-In: 15 | Out: [1 1 1 1] | Expected: [1 1 1 1]
+Output: 7 | Actual: 7
+Output: 6 | Actual: 6
+Output: 3 | Actual: 3
+Output: 4 | Actual: 4
+Output: 2 | Actual: 2
+Output: 3 | Actual: 3
+Output: 6 | Actual: 6
+[...]
+Output: 6 | Actual: 6
+Output: 1 | Actual: 7
+Output: 3 | Actual: 3
+Output: 0 | Actual: 0
+Output: 6 | Actual: 6
+Output: 1 | Actual: 1
 ```

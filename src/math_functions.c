@@ -3,12 +3,16 @@
 
 #define LEAKY_RELU_SLOPE 0.01
 
-double sigmoid(double x) {
-    return 1.0 / (1.0 + exp(-x));
+void sigmoid(double* inputs, double* outputs, int len) {
+    for (int i = 0; i < len; i++) {
+        outputs[i] = 1.0 / (1.0 + exp(-inputs[i]));
+    }
 }
 
-double sigmoid_deriv(double x) {
-    return x * (1.0 - x);
+void sigmoid_deriv(double* inputs, double* outputs, int len) {
+    for (int i = 0; i < len; i++) {
+        outputs[i] = inputs[i] * (1.0 - inputs[i]);
+    }
 }
 
 void linear(double* inputs, double* outputs, int len) {
@@ -94,15 +98,15 @@ double mse(double* predicted, double* actual, int length) {
 
 double categ_cross_entropy(double* predicted, double* actual, int n_classes) {
     double sum = 0.0;
-    double epsilon = 1e-15; // Empêche log(0) -> -inf
+    double epsilon = 1e-15; // Against log(0) -> -inf
 
     for (int i = 0; i < n_classes; i++) {
-        // On "clamp" la valeur prédite pour qu'elle ne soit jamais exactement 0 ou 1
+        // Clamp value so it's not litteraly 0 or 1
         double p = predicted[i];
         if (p < epsilon) p = epsilon;
         if (p > 1.0 - epsilon) p = 1.0 - epsilon;
 
-        // Formule : - sum( y * log(y_pred) )
+        // - sum( y * log(y_pred) )
         sum += actual[i] * log(p);
     }
     return -sum;

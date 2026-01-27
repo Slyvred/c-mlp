@@ -1,8 +1,8 @@
 #pragma once
 
 // Activations functions
-double sigmoid(double x);
-double sigmoid_deriv(double x);
+void sigmoid(double* inputs, double* outputs, int len);
+void sigmoid_deriv(double* inputs, double* outputs, int len);
 void linear(double* inputs, double* outputs, int len);
 void linear_deriv(double* inputs, double* outputs, int len);
 void leaky_relu(double* inputs, double* outputs, int len);
