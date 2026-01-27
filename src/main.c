@@ -15,7 +15,7 @@ int main(int argc, char** argv) {
     // function sig = {sigmoid, sigmoid_deriv};
     // function lin = {linear, linear_deriv};
     function rel = {leaky_relu, leaky_relu_deriv};
-    function softm = {softmax, NULL};
+    function softm = {softmax, softmax_deriv};
 
     layer layers[4] = {
         dense(256, 784, &rel),

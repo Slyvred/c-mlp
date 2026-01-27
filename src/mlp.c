@@ -59,12 +59,13 @@ void forward(MLP *m, double* inputs, int n_inputs) {
 void train(MLP *m, double* raw_inputs, double* target, double lr) {
     // Calculate output layer error
     layer* l = &m->layers[m->n_layers - 1];
+    l->activation_function->df(l->raw_outputs, l->derivatives, l->n_neurons);
     for (int i = 0; i < l->n_neurons; i++) {
         // double output = l->neurons[i].output;
         neuron* n = &l->neurons[i];
 
         // Error = (target - output) * f'(output)
-        n->delta = (l->outputs[i] - target[i]);// * l->activation_function->df(n->output);
+        n->delta = (l->outputs[i] - target[i]) * l->derivatives[i];
     }
 
     // Calculate layer error from last hidden layer to input

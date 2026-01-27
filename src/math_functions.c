@@ -58,6 +58,22 @@ void softmax(double* inputs, double* outputs, int len) {
     }
 }
 
+// This function does NOT compute the true derivative of softmax.
+//
+// When using Softmax + Cross-Entropy loss, the gradient w.r.t the logits is:
+//     dL/dz = output - target
+// The derivative of softmax is already analytically absorbed into the loss.
+// In this framework, the training code computes:
+//     delta = (output - target) * derivative
+// So for softmax, we must set derivative = 1 to avoid applying any extra factor.
+// This function therefore acts as a neutral "pass-through" derivative.
+// It exists only to keep the same training code path for both regression and classification.
+void softmax_deriv(double* inputs, double* outputs, int len) {
+    for (int i = 0; i < len; i++) {
+        outputs[i] = 1;
+    }
+}
+
 double sum(double inputs[], double weights[], double bias, int len) {
     double sum = 0;
     for (int i = 0; i < len; i++) {

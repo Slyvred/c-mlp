@@ -8,6 +8,7 @@ void linear_deriv(double* inputs, double* outputs, int len);
 void leaky_relu(double* inputs, double* outputs, int len);
 void leaky_relu_deriv(double* inputs, double* outputs, int len);
 void softmax(double* inputs, double* outputs, int len);
+void softmax_deriv(double* inputs, double* outputs, int len);
 
 // Loss functions
 double categ_cross_entropy(double* predicted, double* actual, int n_classes);
