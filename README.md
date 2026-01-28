@@ -1,6 +1,12 @@
 # C-MLP  
 This repository provides a minimalist implementation of a Multi-Layer Perceptron (MLP) written in C. It is designed to demonstrate the core mechanics of neural networks, including forward propagation and backpropagation, without the overhead of external libraries.
 
+## What is an MLP ?
+
+![MLP Example](https://media.geeksforgeeks.org/wp-content/uploads/20250929154234052438/backpropagation_in_neural_network_8.webp)
+
+>"Multi-Layer Perceptron (MLP) consists of fully connected dense layers that transform input data from one dimension to another. It is called multi-layer because it contains an input layer, one or more hidden layers and an output layer. The purpose of an MLP is to model complex relationships between inputs and outputs." [geeksforgeeks](https://www.geeksforgeeks.org/deep-learning/multi-layer-perceptron-learning-in-tensorflow/)
+
 ---
 ## Overview
 The goal of this project is to provide a transparent look at how neural networks function at a low level. By using only the C standard library, the code highlights the mathematical operations required for training and inference.
@@ -20,6 +26,8 @@ The network uses the LeakyRelu function as the activation for all hidden layers,
 
 $$f(x) = \max(\epsilon x, x)$$
 
+![Leaky Relu Plot](https://docs.pytorch.org/docs/stable/_images/LeakyReLU.png)
+
 With its derivative being:
 
 $$f'(x) = \max(\epsilon, 1)$$  
@@ -31,6 +39,8 @@ To facilitate learning through backpropagation, the derivative of the function i
 As we are doing classification in the example provided in [main.c](src/main.c), the activation function of the output layer is the Softmax function, defined as:  
 
 $$softmax(z)_{i} = \frac{e^{z_{i}}}{\sum_{j=1}^{N} e^{z_{j}}}$$
+
+![Softmax Plot](https://images.contentstack.io/v3/assets/bltac01ee6daa3a1e14/blte5e1674e3883fab3/65ef8ba4039fdd4df8335b7c/img_blog_image1_inline_(2).png?width=1024&disable=upscale&auto=webp)
 
 ## References
 - https://www.geeksforgeeks.org/deep-learning/multi-layer-perceptron-learning-in-tensorflow/
@@ -44,6 +54,9 @@ $$softmax(z)_{i} = \frac{e^{z_{i}}}{\sum_{j=1}^{N} e^{z_{j}}}$$
 ## Implementation Example: MNIST Dataset
 
 The provided [main.c](src/main.c) contains a model trained to classify written digits from 0 to 9 to their correct label.
+
+![Example of digits from the MNIST dataset.](https://upload.wikimedia.org/wikipedia/commons/2/27/MnistExamples.png "Source: wikipedia")
+*Example of digits from the MNIST dataset.*
 
 **Data Normalization**: To prevent neuron saturation and ensure efficient learning, the value of each pixel from the input image is normalized to a range in $[0, 1]$ by dividing it by the maximum value of a pixel (255).
 
