@@ -175,3 +175,64 @@ void free_model(MLP* m) {
         free(l->neurons);
     }
 }
+
+void save_model(MLP* m, const char* path) {
+    FILE* f = fopen(path, "wb");
+    if (f == NULL) {
+        printf("Failed to open model file\n");
+        return;
+    }
+
+    // Write number of layers
+    fwrite(&m->n_layers, sizeof(int), 1, f);
+
+    // For each layer
+    for (int i = 0; i < m->n_layers; i++) {
+        layer* l = &m->layers[i];
+
+        // Write number of neurons
+        fwrite(&l->n_neurons, sizeof(int), 1, f);
+        // Write number of weights
+        fwrite(&l->neurons[0].n_weights, sizeof(int), 1, f);
+
+        // For each neuron
+        for (int j = 0; j < l->n_neurons; j++) {
+            neuron* n = &l->neurons[j];
+            // Write weights and bias
+            fwrite(&n->weights, sizeof(double), n->n_weights, f);
+            fwrite(&n->bias, sizeof(double), 1, f);
+        }
+        // TODO Write activation function name
+    }
+}
+
+void load_model(MLP* m, const char* path) {
+    FILE* f = fopen(path, "rb");
+    if (f == NULL) {
+        printf("Failed to open model file\n");
+        return;
+    }
+
+    // Read number of layers
+    fread(&m->n_layers, sizeof(int), 1, f);
+    m->layers = malloc(m->n_layers * sizeof(layer));
+
+    // For each layer
+    for (int i = 0; i < m->n_layers; i++) {
+        layer l = &m->layers[i];
+
+        // Write number of neurons
+        fwrite(&l->n_neurons, sizeof(int), 1, f);
+        // Write number of weights
+        fwrite(&l->neurons[0].n_weights, sizeof(int), 1, f);
+
+        // For each neuron
+        for (int j = 0; j < l->n_neurons; j++) {
+            neuron* n = &l->neurons[j];
+            // Write weights and bias
+            fwrite(&n->weights, sizeof(double), n->n_weights, f);
+            fwrite(&n->bias, sizeof(double), 1, f);
+        }
+        // TODO Write activation function name
+    }
+}
