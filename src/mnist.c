@@ -76,3 +76,11 @@ void get_mnist_image_norm(double* output, idx3* dataset, int index) {
     }
     normalize(output, 784, 255.0);
 }
+
+void free_mnist_images(idx3* dataset) {
+    free(dataset->images);
+}
+
+void free_mnist_labels(idx1* dataset) {
+    free(dataset->labels);
+}

@@ -39,4 +39,5 @@ int get_num_parameters(MLP* mlp);
 void print_model(MLP* m);
 void print_output(MLP *m, double* input, int input_len, double *expected, int expected_len);
 void print_list(double* list, int len);
+void free_model(MLP* m);
 double* one_hot(int input, int n_classes);

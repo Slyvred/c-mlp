@@ -7,7 +7,7 @@
 
 int main(int argc, char** argv) {
     srand(42); // Pour la reproductibilité
-    getenv("IMAGES_TRAIN_PATH");
+
     idx3 x_train = read_images_mnist(getenv("IMAGES_TRAIN_PATH"));
     idx1 y_train = read_labels_mnist(getenv("LABELS_TRAIN_PATH"));
 
@@ -62,5 +62,14 @@ int main(int argc, char** argv) {
         if (i % 100 == 0)
             printf("Output: %d | Actual: %d\n", index_of_max(outputs, 10), y_test.labels[i]);
     }
+
+    free_model(&model);
+
+    free_mnist_images(&x_train);
+    free_mnist_labels(&y_train);
+
+    free_mnist_images(&x_test);
+    free_mnist_labels(&y_test);
+
     return 0;
 }

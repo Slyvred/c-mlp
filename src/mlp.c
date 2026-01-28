@@ -159,3 +159,19 @@ double* one_hot(int input, int n_classes) {
     one_hot[input] = 1.0;
     return one_hot;
 }
+
+void free_model(MLP* m) {
+    for (int i = 0; i < m->n_layers; i++) {
+        layer* l = &m->layers[i];
+
+        for (int j = 0; j < l->n_neurons; j++) {
+            neuron* n = &l->neurons[j];
+            free(n->weights);
+        }
+
+        free(l->derivatives);
+        free(l->outputs);
+        free(l->raw_outputs);
+        free(l->neurons);
+    }
+}
