@@ -38,9 +38,27 @@ To facilitate learning through backpropagation, the derivative of the function i
 
 As we are doing classification in the example provided in [main.c](src/main.c), the activation function of the output layer is the Softmax function, defined as:  
 
-$$softmax(z)_{i} = \frac{e^{z_{i}}}{\sum_{j=1}^{N} e^{z_{j}}}$$
+$$
+\begin{pmatrix}
+1.3 \\
+5.1 \\
+2.2 \\
+\vdots \\
+1.1
+\end{pmatrix}
+\xrightarrow{\text{Output layer}}
+\frac{e^{z_i}}{\sum_{j=1}^{n} e^{z_j}}
+\xrightarrow{\text{Probabilities}}
+\begin{pmatrix}
+0.02 \\
+0.90 \\
+0.05 \\
+\vdots \\
+0.02
+\end{pmatrix}
+$$
 
-![Softmax Plot](https://images.contentstack.io/v3/assets/bltac01ee6daa3a1e14/blte5e1674e3883fab3/65ef8ba4039fdd4df8335b7c/img_blog_image1_inline_(2).png?width=1024&disable=upscale&auto=webp)
+where $n$ is the number of classes (output neurons), $i$ is the index of the current class, and $j$ is a summation index over all classes.
 
 ## References
 - https://www.geeksforgeeks.org/deep-learning/multi-layer-perceptron-learning-in-tensorflow/
