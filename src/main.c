@@ -33,6 +33,7 @@ int main(int argc, char** argv) {
     double image_buffer[784];
     double one_hot_buffer[10];
     double last_loss = 999;
+    double* losses = malloc(sizeof(double) * x_train.n_images);
     // 1 epoch = 1 run through all the train dataset
     for (int epoch = 0; epoch < epochs; epoch++) {
         for (int i = 0; i < x_train.n_images; i++) {
@@ -43,27 +44,29 @@ int main(int argc, char** argv) {
             // Actual training
             forward(&model, image_buffer, 784);
             train(&model, image_buffer, one_hot_buffer, lr);
-        }
-        // Display loss for each epoch
-        double* outputs = model.layers[model.n_layers - 1].outputs;
 
+            double* outputs = model.layers[model.n_layers - 1].outputs;
+            losses[i] = categ_cross_entropy(outputs, one_hot_buffer, 10);
+        }
+        // Display average loss for each epoch
+        double avg_loss = average(losses, x_train.n_images);
         // We use the categorical cross entropy function because it's adapted
         // for multiclass classification with one hot encoded vectors
-        double loss = categ_cross_entropy(outputs, one_hot_buffer, 10);
-        printf("Epoch: %d - Loss: %.10f\n", epoch+1, loss);
+        printf("Epoch: %d - Loss: %.10f\n", epoch+1, avg_loss);
 
         // Checkpointing: if the loss is lower than the previous loss we save the model
-        if (loss < last_loss) {
+        if (avg_loss < last_loss) {
             printf("  Loss is lower than last loss, saving new best model...\n");
             printf("  ");
             save_model(&model, getenv("MODEL_PATH"));
             printf("\n");
         }
 
-        last_loss = loss;
+        last_loss = avg_loss;
     }
     printf("--- End ---\n");
 
+    free(losses);
     free_model(&model);
     free_mnist_images(&x_train);
     free_mnist_labels(&y_train);

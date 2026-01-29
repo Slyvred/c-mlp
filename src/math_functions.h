@@ -19,3 +19,4 @@ void normalize(double* values, int length, double max);
 void denormalize(double* values, int length, double max);
 double sum(double inputs[], double weights[], double bias, int len);
 int index_of_max(double* array, int len);
+double average(double* values, int length);

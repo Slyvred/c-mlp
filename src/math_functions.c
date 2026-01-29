@@ -116,3 +116,11 @@ double categ_cross_entropy(double* predicted, double* actual, int n_classes) {
     int correct_class_idx = index_of_max(actual, n_classes);
     return -log(predicted[correct_class_idx]);
 }
+
+double average(double* values, int length) {
+    double sum = 0;
+    for (int i = 0; i < length ;i++) {
+        sum += values[i];
+    }
+    return sum /= length;
+}
