@@ -58,9 +58,6 @@ static void fn(struct mg_connection *c, int ev, void *ev_data) {
 
 int main(int argc, char** argv) {
     char *model_path = getenv("MODEL_PATH");
-    if (model_path == NULL) model_path = "model.txt";
-
-    printf("Chargement du modèle '%s'...\n", model_path);
     load_model(&model, model_path);
 
     struct mg_mgr mgr;
