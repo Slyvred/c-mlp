@@ -1,107 +1,79 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "mlp.h"
-#include "mnist.h"
 #include "math_functions.h"
+#include "mongoose.h"
+
+MLP model;
+
+typedef struct {
+    int label;
+    double confidence;
+}output;
+
+output predict(double* image) {
+    forward(&model, image, 784);
+    double* outputs = model.layers[model.n_layers - 1].outputs;
+    int class = index_of_max(outputs, 10);
+    output predicted = {class, outputs[class]};
+    return predicted;
+}
+
+static void fn(struct mg_connection *c, int ev, void *ev_data) {
+
+    if (ev == MG_EV_HTTP_MSG) {
+        struct mg_http_message *hm = (struct mg_http_message *) ev_data;
+        // Connection = 1. http upgrade request 2. upgrade connection to websocket
+        if (mg_match(hm->uri, mg_str("/"), NULL)) {
+            mg_ws_upgrade(c, hm, NULL);
+        }
+    }
+
+    else if (ev == MG_EV_WS_OPEN) {
+        printf("WebSocket client connected\n");
+    }
+
+    else if (ev == MG_EV_WS_MSG) {
+        struct mg_ws_message *wm = (struct mg_ws_message *) ev_data;
+
+        if (wm->data.len == 784) {
+            unsigned char* raw_data = (unsigned char*) wm->data.buf;
+            double input_vector[784];
+
+            // Normalize vector here
+            for (int i = 0; i < 784; i++) {
+                input_vector[i] = (double)raw_data[i] / 255.0;
+            }
+
+            output prediction = predict(input_vector);
+            char response[32];
+            int len = sprintf(response, "%d - %.2f", prediction.label, prediction.confidence); // Format prediction and confidence
+            mg_ws_send(c, response, len, WEBSOCKET_OP_TEXT);
+
+        } else {
+            printf("Error: received %lu bytes - expected 784)\n", (unsigned long)wm->data.len);
+        }
+    }
+}
 
 int main(int argc, char** argv) {
-    srand(42); // Pour la reproductibilité
+    char *model_path = getenv("MODEL_PATH");
+    if (model_path == NULL) model_path = "model.txt";
 
-    idx3 x_train = read_images_mnist(getenv("IMAGES_TRAIN_PATH"));
-    idx1 y_train = read_labels_mnist(getenv("LABELS_TRAIN_PATH"));
+    printf("Chargement du modèle '%s'...\n", model_path);
+    load_model(&model, model_path);
 
-    layer layers[4] = {
-        dense(256, 784, &rel), // 784 is our input shape
-        dense(128, 256, &rel),
-        dense(64, 128, &rel),
-        dense(10, 64, &softm), // 10 is our output shape (because we have 10 classes)
-    };
-    MLP model = { layers, sizeof(layers) / sizeof(layer) };
+    struct mg_mgr mgr;
+    mg_mgr_init(&mgr);
 
-    print_model(&model);
+    mg_http_listen(&mgr, "http://0.0.0.0:8000", fn, NULL);
+    printf("Listening on ws://127.0.0.1:8000\n");
 
-    // Default values
-    int epochs = 6;
-    double lr = 0.01;
-
-    if (argc == 3) {
-        epochs = atoi(argv[1]);
-        lr = atof(argv[2]);
+    for (;;) {
+        mg_mgr_poll(&mgr, 100); // 100ms
     }
 
-    printf("\n --- Training model ---\n");
-    double image_buffer[784];
-    double one_hot_buffer[10];
-    double last_loss = 999;
-    double* losses = malloc(sizeof(double) * x_train.n_images);
-    // 1 epoch = 1 run through all the train dataset
-    for (int epoch = 0; epoch < epochs; epoch++) {
-        for (int i = 0; i < x_train.n_images; i++) {
-            // "Formatting inputs"
-            get_mnist_image_norm(image_buffer, &x_train, i);
-            one_hot(one_hot_buffer, y_train.labels[i], 10);
-
-            // Actual training
-            forward(&model, image_buffer, 784);
-            train(&model, image_buffer, one_hot_buffer, lr);
-
-            double* outputs = model.layers[model.n_layers - 1].outputs;
-            losses[i] = categ_cross_entropy(outputs, one_hot_buffer, 10);
-        }
-        // Display average loss for each epoch
-        double avg_loss = average(losses, x_train.n_images);
-        // We use the categorical cross entropy function because it's adapted
-        // for multiclass classification with one hot encoded vectors
-        printf("Epoch: %d - Loss: %.10f\n", epoch+1, avg_loss);
-
-        // Checkpointing: if the loss is lower than the previous loss we save the model
-        if (avg_loss < last_loss) {
-            printf("  Average loss is lower than last epoch, saving new best model...\n");
-            printf("  ");
-            save_model(&model, getenv("MODEL_PATH"));
-            printf("\n");
-        }
-
-        last_loss = avg_loss;
-    }
-    printf("--- End ---\n");
-
-    free(losses);
+    mg_mgr_free(&mgr);
     free_model(&model);
-    free_mnist_images(&x_train);
-    free_mnist_labels(&y_train);
-
-    // --- Inference example ---
-    MLP model2;
-    load_model(&model2, getenv("MODEL_PATH"));
-
-    // Test using unseen data
-    idx3 x_test = read_images_mnist(getenv("IMAGES_TEST_PATH"));
-    idx1 y_test = read_labels_mnist(getenv("LABELS_TEST_PATH"));
-
-    double* test_losses = malloc(sizeof(double) * x_test.n_images);
-
-    printf("\n--- Results ---\n");
-    for (int i = 0; i < x_test.n_images; i++) {
-        // Actual inference
-        get_mnist_image_norm(image_buffer, &x_test, i);
-        forward(&model2, image_buffer, 784);
-
-        // Loss computing
-        double* outputs = model2.layers[model2.n_layers - 1].outputs;
-        one_hot(one_hot_buffer, y_test.labels[i], 10);
-        test_losses[i] = categ_cross_entropy(outputs, one_hot_buffer, 10);
-
-        if (i % 100 == 0) {
-            int predicted = index_of_max(outputs, 10);
-            printf("Output: %d | Actual: %d\n", predicted, y_test.labels[i]);
-        }
-    }
-    printf("Average loss: %.10f\n", average(test_losses, x_test.n_images));
-
-    free(test_losses);
-    free_model(&model2);
-    free_mnist_images(&x_test);
-    free_mnist_labels(&y_test);
     return 0;
 }
