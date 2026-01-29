@@ -141,12 +141,6 @@ Layer 2: Neurons: 64 | Parameters: 128
 Layer 3: Neurons: 10 | Parameters: 64
 Total number of parameters: 242762
 
-Layer 0: Neurons: 256 | Parameters: 784
-Layer 1: Neurons: 128 | Parameters: 256
-Layer 2: Neurons: 64 | Parameters: 128
-Layer 3: Neurons: 10 | Parameters: 64
-Total number of parameters: 242762
-
 --- Results ---
 Output: 7 | Actual: 7 | Loss: 0.0000000000
 Output: 6 | Actual: 6 | Loss: 0.0000000000

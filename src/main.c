@@ -78,8 +78,6 @@ int main(int argc, char** argv) {
     MLP model2;
     load_model(&model2, getenv("MODEL_PATH"));
 
-    print_model(&model2);
-
     // Test using unseen data
     idx3 x_test = read_images_mnist(getenv("IMAGES_TEST_PATH"));
     idx1 y_test = read_labels_mnist(getenv("LABELS_TEST_PATH"));
