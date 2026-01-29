@@ -12,39 +12,61 @@ int main(int argc, char** argv) {
     idx1 y_train = read_labels_mnist(getenv("LABELS_TRAIN_PATH"));
 
     layer layers[4] = {
-        dense(256, 784, &rel),
+        dense(256, 784, &rel), // 784 is our input shape
         dense(128, 256, &rel),
         dense(64, 128, &rel),
-        dense(10, 64, &softm),
+        dense(10, 64, &softm), // 10 is our output shape (because we have 10 classes)
     };
     MLP model = { layers, sizeof(layers) / sizeof(layer) };
 
     print_model(&model);
 
     // Default values
-    int epochs = 70000;
-    double lr = 0.5;
+    int epochs = 6;
+    double lr = 0.01;
 
     if (argc == 3) {
         epochs = atoi(argv[1]);
         lr = atof(argv[2]);
     }
 
-    double image_buffer[784];
     printf("\n --- Training model ---\n");
+    double image_buffer[784];
+    int i_copy = 0;
+    double last_loss = 999;
+    // 1 epoch = 1 run through all the train dataset
     for (int epoch = 0; epoch < epochs; epoch++) {
-        for (int i = 0; i < x_train.n_images / 5; i++) {
+        for (int i = 0; i < x_train.n_images; i++) {
+            // "Formatting inputs"
             get_mnist_image_norm(image_buffer, &x_train, i);
-            double* actual = one_hot(y_train.labels[i], 10);
+            double* one_hot_y = one_hot(y_train.labels[i], 10);
+
+            // Actual training
             forward(&model, image_buffer, 784);
-            train(&model, image_buffer, actual, lr);
-            free(actual);
+            train(&model, image_buffer, one_hot_y, lr);
+
+            free(one_hot_y);
+            i_copy = i;
         }
-        if (epoch % (int)(0.1 * epochs) == 0) printf("Epoch: %d...\n", epoch);
+        // Display loss for each epoch
+        double* outputs = model.layers[model.n_layers - 1].outputs;
+        double* one_hot_y = one_hot(y_train.labels[i_copy], 10);
+
+        // We use the categorical cross entropy function because it's adapted
+        // for multiclass classification with one hot encoded vectors
+        double loss = categ_cross_entropy(outputs, one_hot_y, 10);
+        printf("Epoch: %d - Loss: %.10f\n", epoch+1, loss);
+        free(one_hot_y);
+
+        // Checkpointing: if the loss is lower than the previous loss we save the model
+        if (loss < last_loss) {
+            printf("Loss < last loss, saving new best model...\n");
+            save_model(&model, getenv("MODEL_PATH"));
+        }
+
+        last_loss = loss;
     }
     printf("--- End ---\n");
-
-    save_model(&model, "/Users/remi/Documents/dev/c-mlp/model.weights");
 
     free_model(&model);
     free_mnist_images(&x_train);
@@ -52,7 +74,7 @@ int main(int argc, char** argv) {
 
 
     MLP model2;
-    load_model(&model2, "/Users/remi/Documents/dev/c-mlp/model.weights");
+    load_model(&model2, getenv("MODEL_PATH"));
 
     print_model(&model2);
 
@@ -65,13 +87,20 @@ int main(int argc, char** argv) {
         get_mnist_image_norm(image_buffer, &x_test, i);
         forward(&model2, image_buffer, 784);
         double* outputs = model2.layers[model2.n_layers - 1].outputs;
-        if (i % 100 == 0)
-            printf("Output: %d | Actual: %d\n", index_of_max(outputs, 10), y_test.labels[i]);
+        if (i % 100 == 0) {
+            double* one_hot_y = one_hot(y_test.labels[i], 10);
+            int predicted = index_of_max(outputs, 10);
+
+            // If we correctly predict the loss is 0, no need to compute it
+            double loss = (predicted == y_test.labels[i]) ? 0 : categ_cross_entropy(outputs, one_hot_y, 10);
+
+            printf("Output: %d | Actual: %d | Loss: %.10f\n", predicted, y_test.labels[i], loss);
+            free(one_hot_y);
+        }
     }
 
     free_model(&model2);
     free_mnist_images(&x_test);
     free_mnist_labels(&y_test);
-
     return 0;
 }

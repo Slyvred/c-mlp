@@ -19,6 +19,7 @@ The goal of this project is to provide a transparent look at how neural networks
   - Linear
   - Softmax
 - **Stochastic Training**: Implementation of basic gradient descent.
+- **Save & Load Weights**: Save trained weights of any model and load them afterwards to start inference right away
 - **Minimal Dependencies**: Requires only stdio.h, stdlib.h, time.h, math.h, arpa/inet.h (for endian swapping only).
 ---
 ## Mathematics

@@ -4,6 +4,12 @@
 #include <math.h>
 #include "math_functions.h"
 
+// "Global" activation functions
+function sig = {sigmoid, sigmoid_deriv, SIGMOID};
+function lin = {linear, linear_deriv, LINEAR};
+function rel = {leaky_relu, leaky_relu_deriv, RELU};
+function softm = {softmax, softmax_deriv, SOFTMAX};
+
 double ranged_rand(double min, double max) {
     return ((double)rand() / RAND_MAX) * (max - min) + min;
 }
@@ -208,11 +214,6 @@ void save_model(MLP* m, const char* path) {
     printf("Model saved to: %s\n", path);
 }
 
-function sig = {sigmoid, sigmoid_deriv};
-function lin = {linear, linear_deriv};
-function rel = {leaky_relu, leaky_relu_deriv, RELU};
-function softm = {softmax, softmax_deriv, SOFTMAX};
-
 void load_model(MLP* m, const char* path) {
     FILE* f = fopen(path, "rb");
     if (f == NULL) {
@@ -222,7 +223,6 @@ void load_model(MLP* m, const char* path) {
 
     // Read number of layers
     fread(&m->n_layers, sizeof(int), 1, f);
-
     printf("Layers: %d\n", m->n_layers);
 
     m->layers = malloc(m->n_layers * sizeof(layer));
@@ -233,6 +233,7 @@ void load_model(MLP* m, const char* path) {
 
         // Read number of neurons
         fread(&l->n_neurons, sizeof(int), 1, f);
+
         l->neurons = malloc(l->n_neurons * sizeof(neuron));
 
         l->outputs = malloc(l->n_neurons * sizeof(double));
@@ -242,16 +243,12 @@ void load_model(MLP* m, const char* path) {
         // Read number of weights
         fread(&l->neurons[0].n_weights, sizeof(int), 1, f);
 
-        printf("  Neurons: %d\n", l->n_neurons);
-        printf("  Weights: %d\n", l->neurons[0].n_weights);
-
         // For each neuron
         for (int j = 0; j < l->n_neurons; j++) {
             neuron* n = &l->neurons[j];
 
             n->n_weights = l->neurons[0].n_weights; // Same number of weights for each layer
             n->weights = malloc(sizeof(double) * n->n_weights);
-
 
             // Read weights and bias
             fread(n->weights, sizeof(double), n->n_weights, f);
@@ -260,7 +257,6 @@ void load_model(MLP* m, const char* path) {
 
         int fn_name_buf;
         fread(&fn_name_buf, sizeof(int), 1, f);
-        printf("Activation function: %d\n", fn_name_buf);
 
         switch (fn_name_buf) {
             case RELU:
@@ -279,4 +275,6 @@ void load_model(MLP* m, const char* path) {
                 break;
         }
     }
+    printf("Successfully loaded model !\n");
+    print_model(m);
 }

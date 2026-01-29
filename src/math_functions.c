@@ -113,17 +113,6 @@ double mse(double* predicted, double* actual, int length) {
 }
 
 double categ_cross_entropy(double* predicted, double* actual, int n_classes) {
-    double sum = 0.0;
-    double epsilon = 1e-15; // Against log(0) -> -inf
-
-    for (int i = 0; i < n_classes; i++) {
-        // Clamp value so it's not litteraly 0 or 1
-        double p = predicted[i];
-        if (p < epsilon) p = epsilon;
-        if (p > 1.0 - epsilon) p = 1.0 - epsilon;
-
-        // - sum( y * log(y_pred) )
-        sum += actual[i] * log(p);
-    }
-    return -sum;
+    int correct_class_idx = index_of_max(actual, n_classes);
+    return -log(predicted[correct_class_idx]);
 }
