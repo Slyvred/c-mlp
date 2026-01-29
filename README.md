@@ -132,7 +132,6 @@ Epoch: 6 - Loss: 0.0000004058
   Model saved to: /Users/remi/Documents/dev/c-mlp/model.weights
 
 --- End ---
-Layers: 4
 Successfully loaded model !
 
 Layer 0: Neurons: 256 | Parameters: 784

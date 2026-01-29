@@ -223,7 +223,6 @@ void load_model(MLP* m, const char* path) {
 
     // Read number of layers
     fread(&m->n_layers, sizeof(int), 1, f);
-    printf("Layers: %d\n", m->n_layers);
 
     m->layers = malloc(m->n_layers * sizeof(layer));
 
