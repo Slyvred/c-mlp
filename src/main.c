@@ -87,7 +87,8 @@ int main(int argc, char** argv) {
         get_mnist_image_norm(image_buffer, &x_test, i);
         forward(&model2, image_buffer, 784);
         double* outputs = model2.layers[model2.n_layers - 1].outputs;
-        if (i % 100 == 0) {
+
+        if (i % 500 == 0) {
             double* one_hot_y = one_hot(y_test.labels[i], 10);
             int predicted = index_of_max(outputs, 10);
 

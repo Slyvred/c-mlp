@@ -43,7 +43,6 @@ layer dense(int n_neurons, int n_parameters, function *activation_function) {
 
 // Passage en avant (Forward Pass)
 void forward(MLP *m, double* inputs, int n_inputs) {
-
     for (int i = 0; i < m->n_layers; i++) {
         layer* l = &m->layers[i];
         double* layer_inputs;
