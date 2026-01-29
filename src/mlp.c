@@ -159,10 +159,9 @@ void print_output(MLP *m, double* input, int input_len, double *expected, int ex
     printf("\n");
 }
 
-double* one_hot(int input, int n_classes) {
-    double* one_hot = calloc(n_classes, sizeof(double));
-    one_hot[input] = 1.0;
-    return one_hot;
+void one_hot(double* output, int input, int n_classes) {
+    for (int i = 0; i < n_classes; i++) output[i] = 0; // Set/Reset buffer
+    output[input] = 1.0;
 }
 
 void free_model(MLP* m) {

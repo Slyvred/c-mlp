@@ -31,31 +31,26 @@ int main(int argc, char** argv) {
 
     printf("\n --- Training model ---\n");
     double image_buffer[784];
-    int i_copy = 0;
+    double one_hot_buffer[10];
     double last_loss = 999;
     // 1 epoch = 1 run through all the train dataset
     for (int epoch = 0; epoch < epochs; epoch++) {
         for (int i = 0; i < x_train.n_images; i++) {
             // "Formatting inputs"
             get_mnist_image_norm(image_buffer, &x_train, i);
-            double* one_hot_y = one_hot(y_train.labels[i], 10);
+            one_hot(one_hot_buffer, y_train.labels[i], 10);
 
             // Actual training
             forward(&model, image_buffer, 784);
-            train(&model, image_buffer, one_hot_y, lr);
-
-            free(one_hot_y);
-            i_copy = i;
+            train(&model, image_buffer, one_hot_buffer, lr);
         }
         // Display loss for each epoch
         double* outputs = model.layers[model.n_layers - 1].outputs;
-        double* one_hot_y = one_hot(y_train.labels[i_copy], 10);
 
         // We use the categorical cross entropy function because it's adapted
         // for multiclass classification with one hot encoded vectors
-        double loss = categ_cross_entropy(outputs, one_hot_y, 10);
+        double loss = categ_cross_entropy(outputs, one_hot_buffer, 10);
         printf("Epoch: %d - Loss: %.10f\n", epoch+1, loss);
-        free(one_hot_y);
 
         // Checkpointing: if the loss is lower than the previous loss we save the model
         if (loss < last_loss) {
@@ -88,14 +83,13 @@ int main(int argc, char** argv) {
         double* outputs = model2.layers[model2.n_layers - 1].outputs;
 
         if (i % 100 == 0) {
-            double* one_hot_y = one_hot(y_test.labels[i], 10);
+            one_hot(one_hot_buffer, y_test.labels[i], 10);
             int predicted = index_of_max(outputs, 10);
 
             // If we correctly predicted the label the loss is 0, no need to compute it
-            double loss = (predicted == y_test.labels[i]) ? 0 : categ_cross_entropy(outputs, one_hot_y, 10);
+            double loss = (predicted == y_test.labels[i]) ? 0 : categ_cross_entropy(outputs, one_hot_buffer, 10);
 
             printf("Output: %d | Actual: %d | Loss: %.10f\n", predicted, y_test.labels[i], loss);
-            free(one_hot_y);
         }
     }
 

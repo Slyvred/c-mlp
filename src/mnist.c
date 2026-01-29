@@ -2,7 +2,6 @@
 #include <stdlib.h>
 #include <arpa/inet.h> // Endian swapping
 #include "mnist.h"
-#include "math_functions.h"
 
 idx3 read_images_mnist(const char* path) {
     FILE* file = fopen(path, "rb");
@@ -70,9 +69,8 @@ idx1 read_labels_mnist(const char* path) {
 
 void get_mnist_image_norm(double* output, idx3* dataset, int index) {
     for (int i = 0; i < 784; i++) {
-        output[i] = (double)dataset->images[i+784*index];
+        output[i] = (double)dataset->images[i + 784 * index] / 255.0;
     }
-    normalize(output, 784, 255.0);
 }
 
 void free_mnist_images(idx3* dataset) {
