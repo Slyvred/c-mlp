@@ -11,12 +11,6 @@ int main(int argc, char** argv) {
     idx3 x_train = read_images_mnist(getenv("IMAGES_TRAIN_PATH"));
     idx1 y_train = read_labels_mnist(getenv("LABELS_TRAIN_PATH"));
 
-    // -------- MODEL ARCHITECTURE --------
-    // function sig = {sigmoid, sigmoid_deriv};
-    // function lin = {linear, linear_deriv};
-    function rel = {leaky_relu, leaky_relu_deriv};
-    function softm = {softmax, softmax_deriv};
-
     layer layers[4] = {
         dense(256, 784, &rel),
         dense(128, 256, &rel),
@@ -50,24 +44,32 @@ int main(int argc, char** argv) {
     }
     printf("--- End ---\n");
 
+    save_model(&model, "/Users/remi/Documents/dev/c-mlp/model.weights");
+
+    free_model(&model);
+    free_mnist_images(&x_train);
+    free_mnist_labels(&y_train);
+
+
+    MLP model2;
+    load_model(&model2, "/Users/remi/Documents/dev/c-mlp/model.weights");
+
+    print_model(&model2);
+
     // Test using unseen data
     idx3 x_test = read_images_mnist(getenv("IMAGES_TEST_PATH"));
     idx1 y_test = read_labels_mnist(getenv("LABELS_TEST_PATH"));
 
     printf("\n--- Results ---\n");
-    for (int i = 0; i < x_test.n_images / 5; i++) {
+    for (int i = 0; i < x_test.n_images; i++) {
         get_mnist_image_norm(image_buffer, &x_test, i);
-        forward(&model, image_buffer, 784);
-        double* outputs = model.layers[model.n_layers - 1].outputs;
+        forward(&model2, image_buffer, 784);
+        double* outputs = model2.layers[model2.n_layers - 1].outputs;
         if (i % 100 == 0)
             printf("Output: %d | Actual: %d\n", index_of_max(outputs, 10), y_test.labels[i]);
     }
 
-    free_model(&model);
-
-    free_mnist_images(&x_train);
-    free_mnist_labels(&y_train);
-
+    free_model(&model2);
     free_mnist_images(&x_test);
     free_mnist_labels(&y_test);
 

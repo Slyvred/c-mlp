@@ -1,9 +1,22 @@
 #pragma once
 
+typedef enum {
+  RELU,
+  SIGMOID,
+  SOFTMAX,
+  LINEAR
+}fn_name;
+
 typedef struct {
     void (*f)(double* inputs, double* outputs, int len);
     void (*df)(double* inputs, double* outputs, int len);
+    fn_name function_name;
 }function;
+
+extern function sig;
+extern function lin;
+extern function rel;
+extern function softm;
 
 typedef struct {
     // y = a_i * x_i + b
@@ -41,3 +54,5 @@ void print_output(MLP *m, double* input, int input_len, double *expected, int ex
 void print_list(double* list, int len);
 void free_model(MLP* m);
 double* one_hot(int input, int n_classes);
+void save_model(MLP* m, const char* path);
+void load_model(MLP* m, const char* path);

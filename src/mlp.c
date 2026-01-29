@@ -199,12 +199,19 @@ void save_model(MLP* m, const char* path) {
         for (int j = 0; j < l->n_neurons; j++) {
             neuron* n = &l->neurons[j];
             // Write weights and bias
-            fwrite(&n->weights, sizeof(double), n->n_weights, f);
+            fwrite(n->weights, sizeof(double), n->n_weights, f);
             fwrite(&n->bias, sizeof(double), 1, f);
         }
-        // TODO Write activation function name
+        fwrite(&l->activation_function->function_name, sizeof(int), 1, f);
     }
+    fclose(f);
+    printf("Model saved to: %s\n", path);
 }
+
+function sig = {sigmoid, sigmoid_deriv};
+function lin = {linear, linear_deriv};
+function rel = {leaky_relu, leaky_relu_deriv, RELU};
+function softm = {softmax, softmax_deriv, SOFTMAX};
 
 void load_model(MLP* m, const char* path) {
     FILE* f = fopen(path, "rb");
@@ -215,24 +222,61 @@ void load_model(MLP* m, const char* path) {
 
     // Read number of layers
     fread(&m->n_layers, sizeof(int), 1, f);
+
+    printf("Layers: %d\n", m->n_layers);
+
     m->layers = malloc(m->n_layers * sizeof(layer));
 
     // For each layer
     for (int i = 0; i < m->n_layers; i++) {
-        layer l = &m->layers[i];
+        layer* l = &m->layers[i];
 
-        // Write number of neurons
-        fwrite(&l->n_neurons, sizeof(int), 1, f);
-        // Write number of weights
-        fwrite(&l->neurons[0].n_weights, sizeof(int), 1, f);
+        // Read number of neurons
+        fread(&l->n_neurons, sizeof(int), 1, f);
+        l->neurons = malloc(l->n_neurons * sizeof(neuron));
+
+        l->outputs = malloc(l->n_neurons * sizeof(double));
+        l->raw_outputs = malloc(l->n_neurons * sizeof(double));
+        l->derivatives = malloc(l->n_neurons * sizeof(double));
+
+        // Read number of weights
+        fread(&l->neurons[0].n_weights, sizeof(int), 1, f);
+
+        printf("  Neurons: %d\n", l->n_neurons);
+        printf("  Weights: %d\n", l->neurons[0].n_weights);
 
         // For each neuron
         for (int j = 0; j < l->n_neurons; j++) {
             neuron* n = &l->neurons[j];
-            // Write weights and bias
-            fwrite(&n->weights, sizeof(double), n->n_weights, f);
-            fwrite(&n->bias, sizeof(double), 1, f);
+
+            n->n_weights = l->neurons[0].n_weights; // Same number of weights for each layer
+            n->weights = malloc(sizeof(double) * n->n_weights);
+
+
+            // Read weights and bias
+            fread(n->weights, sizeof(double), n->n_weights, f);
+            fread(&n->bias, sizeof(double), 1, f);
         }
-        // TODO Write activation function name
+
+        int fn_name_buf;
+        fread(&fn_name_buf, sizeof(int), 1, f);
+        printf("Activation function: %d\n", fn_name_buf);
+
+        switch (fn_name_buf) {
+            case RELU:
+                l->activation_function = &rel;
+                break;
+            case LINEAR:
+                l->activation_function = &lin;
+                break;
+            case SIGMOID:
+                l->activation_function = &sig;
+                break;
+            case SOFTMAX:
+                l->activation_function = &softm;
+                break;
+            default:
+                break;
+        }
     }
 }
