@@ -60,7 +60,8 @@ int main(int argc, char** argv) {
 
         // Checkpointing: if the loss is lower than the previous loss we save the model
         if (loss < last_loss) {
-            printf("Loss < last loss, saving new best model...\n");
+            printf("  Loss is lower than last loss, saving new best model...\n");
+            printf("  ");
             save_model(&model, getenv("MODEL_PATH"));
         }
 
