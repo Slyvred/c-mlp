@@ -63,6 +63,7 @@ int main(int argc, char** argv) {
             printf("  Loss is lower than last loss, saving new best model...\n");
             printf("  ");
             save_model(&model, getenv("MODEL_PATH"));
+            printf("\n");
         }
 
         last_loss = loss;

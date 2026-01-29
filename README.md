@@ -98,7 +98,7 @@ The provided [main.c](src/main.c) contains a model trained to classify written d
 ### Example Output
 
 ```
-./main 256 0.01
+env $(grep -v '^#' .env | xargs) ./main 6 0.01
 
 Layer 0: Neurons: 256 | Parameters: 784
 Layer 1: Neurons: 128 | Parameters: 256
@@ -107,32 +107,67 @@ Layer 3: Neurons: 10 | Parameters: 64
 Total number of parameters: 242762
 
  --- Training model ---
-Epoch: 0...
-Epoch: 25...
-Epoch: 50...
-Epoch: 75...
-Epoch: 100...
-Epoch: 125...
-Epoch: 150...
-Epoch: 175...
-Epoch: 200...
-Epoch: 225...
-Epoch: 250...
+Epoch: 1 - Loss: 0.0018287357
+  Loss is lower than last loss, saving new best model...
+  Model saved to: /Users/remi/Documents/dev/c-mlp/model.weights
+
+Epoch: 2 - Loss: 0.0004117594
+  Loss is lower than last loss, saving new best model...
+  Model saved to: /Users/remi/Documents/dev/c-mlp/model.weights
+
+Epoch: 3 - Loss: 0.0001624577
+  Loss is lower than last loss, saving new best model...
+  Model saved to: /Users/remi/Documents/dev/c-mlp/model.weights
+
+Epoch: 4 - Loss: 0.0000559219
+  Loss is lower than last loss, saving new best model...
+  Model saved to: /Users/remi/Documents/dev/c-mlp/model.weights
+
+Epoch: 5 - Loss: 0.0000279919
+  Loss is lower than last loss, saving new best model...
+  Model saved to: /Users/remi/Documents/dev/c-mlp/model.weights
+
+Epoch: 6 - Loss: 0.0000004058
+  Loss is lower than last loss, saving new best model...
+  Model saved to: /Users/remi/Documents/dev/c-mlp/model.weights
+
 --- End ---
+Layers: 4
+Successfully loaded model !
+
+Layer 0: Neurons: 256 | Parameters: 784
+Layer 1: Neurons: 128 | Parameters: 256
+Layer 2: Neurons: 64 | Parameters: 128
+Layer 3: Neurons: 10 | Parameters: 64
+Total number of parameters: 242762
+
+Layer 0: Neurons: 256 | Parameters: 784
+Layer 1: Neurons: 128 | Parameters: 256
+Layer 2: Neurons: 64 | Parameters: 128
+Layer 3: Neurons: 10 | Parameters: 64
+Total number of parameters: 242762
 
 --- Results ---
-Output: 7 | Actual: 7
-Output: 6 | Actual: 6
-Output: 3 | Actual: 3
-Output: 4 | Actual: 4
-Output: 2 | Actual: 2
-Output: 3 | Actual: 3
-Output: 6 | Actual: 6
-[...]
-Output: 6 | Actual: 6
-Output: 1 | Actual: 7
-Output: 3 | Actual: 3
-Output: 0 | Actual: 0
-Output: 6 | Actual: 6
-Output: 1 | Actual: 1
+Output: 7 | Actual: 7 | Loss: 0.0000000000
+Output: 6 | Actual: 6 | Loss: 0.0000000000
+Output: 3 | Actual: 3 | Loss: 0.0000000000
+Output: 4 | Actual: 4 | Loss: 0.0000000000
+Output: 2 | Actual: 2 | Loss: 0.0000000000
+Output: 3 | Actual: 3 | Loss: 0.0000000000
+Output: 3 | Actual: 3 | Loss: 0.0000000000
+Output: 1 | Actual: 1 | Loss: 0.0000000000
+Output: 4 | Actual: 4 | Loss: 0.0000000000
+Output: 1 | Actual: 1 | Loss: 0.0000000000
+Output: 6 | Actual: 6 | Loss: 0.0000000000
+...
+Output: 7 | Actual: 7 | Loss: 0.0000000000
+Output: 3 | Actual: 3 | Loss: 0.0000000000
+Output: 1 | Actual: 1 | Loss: 0.0000000000
+Output: 7 | Actual: 7 | Loss: 0.0000000000
+Output: 5 | Actual: 5 | Loss: 0.0000000000
+Output: 2 | Actual: 2 | Loss: 0.0000000000
+Output: 5 | Actual: 5 | Loss: 0.0000000000
+Output: 2 | Actual: 2 | Loss: 0.0000000000
+Output: 0 | Actual: 0 | Loss: 0.0000000000
+Output: 8 | Actual: 8 | Loss: 0.0000000000
 ```
