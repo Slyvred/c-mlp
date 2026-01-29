@@ -1,7 +1,7 @@
-#include "mlp.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
+#include "mlp.h"
 #include "math_functions.h"
 
 // "Global" activation functions

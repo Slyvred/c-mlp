@@ -1,5 +1,5 @@
-#include "math_functions.h"
 #include <math.h>
+#include "math_functions.h"
 
 #define LEAKY_RELU_SLOPE 0.01
 

@@ -1,6 +1,5 @@
 #include <stdio.h>
 #include <stdlib.h>
-
 #include "mlp.h"
 #include "mnist.h"
 #include "math_functions.h"
@@ -88,11 +87,11 @@ int main(int argc, char** argv) {
         forward(&model2, image_buffer, 784);
         double* outputs = model2.layers[model2.n_layers - 1].outputs;
 
-        if (i % 500 == 0) {
+        if (i % 100 == 0) {
             double* one_hot_y = one_hot(y_test.labels[i], 10);
             int predicted = index_of_max(outputs, 10);
 
-            // If we correctly predict the loss is 0, no need to compute it
+            // If we correctly predicted the label the loss is 0, no need to compute it
             double loss = (predicted == y_test.labels[i]) ? 0 : categ_cross_entropy(outputs, one_hot_y, 10);
 
             printf("Output: %d | Actual: %d | Loss: %.10f\n", predicted, y_test.labels[i], loss);

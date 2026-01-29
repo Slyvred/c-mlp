@@ -1,10 +1,8 @@
-#include "mnist.h"
-#include "math_functions.h"
 #include <stdio.h>
-#include <stdint.h>
 #include <stdlib.h>
 #include <arpa/inet.h> // Endian swapping
-#include <string.h>
+#include "mnist.h"
+#include "math_functions.h"
 
 idx3 read_images_mnist(const char* path) {
     FILE* file = fopen(path, "rb");
