@@ -71,7 +71,7 @@ int main(int argc, char** argv) {
     free_mnist_images(&x_train);
     free_mnist_labels(&y_train);
 
-
+    // --- Inference example ---
     MLP model2;
     load_model(&model2, getenv("MODEL_PATH"));
 

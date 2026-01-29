@@ -90,6 +90,8 @@ The provided [main.c](src/main.c) contains a model trained to classify written d
 | 1     | [0, 1, 0, 0, 0, 0, 0, 0, 0, 0] |
 | 2     | [0, 0, 1, 0, 0, 0, 0, 0, 0, 0] |
 | 3     | [0, 0, 0, 1, 0, 0, 0, 0, 0, 0] |
+| 4     | [0, 0, 0, 0, 1, 0, 0, 0, 0, 0] |
+| 5     | [0, 0, 0, 0, 0, 1, 0, 0, 0, 0] |
 | ...   | ...                            |
 
 **Model Configuration**:
@@ -98,10 +100,10 @@ The provided [main.c](src/main.c) contains a model trained to classify written d
 - **Second hidden layer**: 64 neurons -> relu
 - **Output Layer**: 10 neurons (= 10 classes) -> softmax.
 
-### Example Output
+### Example Output (Training with checkpoint + loading & inference)
 
 ```
-env $(grep -v '^#' .env | xargs) ./main 6 0.01
+env $(grep -v '^#' .env | xargs) ./main 12 0.01
 
 Layer 0: Neurons: 256 | Parameters: 784
 Layer 1: Neurons: 128 | Parameters: 256
@@ -110,27 +112,30 @@ Layer 3: Neurons: 10 | Parameters: 64
 Total number of parameters: 242762
 
  --- Training model ---
-Epoch: 1 - Loss: 0.0018287357
+Epoch: 1 - Loss: 0.2365814368
   Loss is lower than last loss, saving new best model...
   Model saved to: /Users/remi/Documents/dev/c-mlp/model.weights
 
-Epoch: 2 - Loss: 0.0004117594
+Epoch: 2 - Loss: 0.1013666919
   Loss is lower than last loss, saving new best model...
   Model saved to: /Users/remi/Documents/dev/c-mlp/model.weights
 
-Epoch: 3 - Loss: 0.0001624577
+Epoch: 3 - Loss: 0.0705100539
   Loss is lower than last loss, saving new best model...
   Model saved to: /Users/remi/Documents/dev/c-mlp/model.weights
 
-Epoch: 4 - Loss: 0.0000559219
+Epoch: 4 - Loss: 0.0537216472
   Loss is lower than last loss, saving new best model...
   Model saved to: /Users/remi/Documents/dev/c-mlp/model.weights
 
-Epoch: 5 - Loss: 0.0000279919
+[...]
+
+Epoch: 10 - Loss: 0.0242365552
   Loss is lower than last loss, saving new best model...
   Model saved to: /Users/remi/Documents/dev/c-mlp/model.weights
 
-Epoch: 6 - Loss: 0.0000004058
+Epoch: 11 - Loss: 0.0248533471
+Epoch: 12 - Loss: 0.0215150055
   Loss is lower than last loss, saving new best model...
   Model saved to: /Users/remi/Documents/dev/c-mlp/model.weights
 
@@ -150,13 +155,12 @@ Output: 3 | Actual: 3 | Loss: 0.0000000000
 Output: 4 | Actual: 4 | Loss: 0.0000000000
 Output: 2 | Actual: 2 | Loss: 0.0000000000
 Output: 3 | Actual: 3 | Loss: 0.0000000000
-Output: 3 | Actual: 3 | Loss: 0.0000000000
-Output: 1 | Actual: 1 | Loss: 0.0000000000
-Output: 4 | Actual: 4 | Loss: 0.0000000000
-Output: 1 | Actual: 1 | Loss: 0.0000000000
 Output: 6 | Actual: 6 | Loss: 0.0000000000
-...
-Output: 7 | Actual: 7 | Loss: 0.0000000000
+Output: 1 | Actual: 1 | Loss: 0.0000000000
+Output: 8 | Actual: 8 | Loss: 0.0000000000
+Output: 1 | Actual: 1 | Loss: 0.0000000000
+Output: 9 | Actual: 9 | Loss: 0.0000000000
+[...]
 Output: 3 | Actual: 3 | Loss: 0.0000000000
 Output: 1 | Actual: 1 | Loss: 0.0000000000
 Output: 7 | Actual: 7 | Loss: 0.0000000000
