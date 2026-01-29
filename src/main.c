@@ -56,7 +56,7 @@ int main(int argc, char** argv) {
 
         // Checkpointing: if the loss is lower than the previous loss we save the model
         if (avg_loss < last_loss) {
-            printf("  Loss is lower than last loss, saving new best model...\n");
+            printf("  Average loss is lower than last epoch, saving new best model...\n");
             printf("  ");
             save_model(&model, getenv("MODEL_PATH"));
             printf("\n");
@@ -79,23 +79,27 @@ int main(int argc, char** argv) {
     idx3 x_test = read_images_mnist(getenv("IMAGES_TEST_PATH"));
     idx1 y_test = read_labels_mnist(getenv("LABELS_TEST_PATH"));
 
+    double* test_losses = malloc(sizeof(double) * x_test.n_images);
+
     printf("\n--- Results ---\n");
     for (int i = 0; i < x_test.n_images; i++) {
+        // Actual inference
         get_mnist_image_norm(image_buffer, &x_test, i);
         forward(&model2, image_buffer, 784);
+
+        // Loss computing
         double* outputs = model2.layers[model2.n_layers - 1].outputs;
+        one_hot(one_hot_buffer, y_test.labels[i], 10);
+        test_losses[i] = categ_cross_entropy(outputs, one_hot_buffer, 10);
 
         if (i % 100 == 0) {
-            one_hot(one_hot_buffer, y_test.labels[i], 10);
             int predicted = index_of_max(outputs, 10);
-
-            // If we correctly predicted the label the loss is 0, no need to compute it
-            double loss = (predicted == y_test.labels[i]) ? 0 : categ_cross_entropy(outputs, one_hot_buffer, 10);
-
-            printf("Output: %d | Actual: %d | Loss: %.10f\n", predicted, y_test.labels[i], loss);
+            printf("Output: %d | Actual: %d\n", predicted, y_test.labels[i]);
         }
     }
+    printf("Average loss: %.10f\n", average(test_losses, x_test.n_images));
 
+    free(test_losses);
     free_model(&model2);
     free_mnist_images(&x_test);
     free_mnist_labels(&y_test);
