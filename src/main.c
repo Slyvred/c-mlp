@@ -10,6 +10,9 @@ int main(int argc, char** argv) {
     idx3 x_train = read_images_mnist(getenv("IMAGES_TRAIN_PATH"));
     idx1 y_train = read_labels_mnist(getenv("LABELS_TRAIN_PATH"));
 
+    idx3 x_test = read_images_mnist(getenv("IMAGES_TEST_PATH"));
+    idx1 y_test = read_labels_mnist(getenv("LABELS_TEST_PATH"));
+
     layer layers[4] = {
         dense(256, 784, &rel), // 784 is our input shape
         dense(128, 256, &rel),
@@ -32,10 +35,14 @@ int main(int argc, char** argv) {
     printf("\n --- Training model ---\n");
     double image_buffer[784];
     double one_hot_buffer[10];
-    double last_loss = 999;
-    double* losses = malloc(sizeof(double) * x_train.n_images);
+    double min_val_loss = 999;
+    double* train_losses = malloc(sizeof(double) * x_train.n_images);
+    double* val_losses = malloc(sizeof(double) * x_test.n_images);
+
     // 1 epoch = 1 run through all the train dataset
     for (int epoch = 0; epoch < epochs; epoch++) {
+
+        // Train model
         for (int i = 0; i < x_train.n_images; i++) {
             // "Formatting inputs"
             get_mnist_image_norm(image_buffer, &x_train, i);
@@ -46,38 +53,54 @@ int main(int argc, char** argv) {
             train(&model, image_buffer, one_hot_buffer, lr);
 
             double* outputs = model.layers[model.n_layers - 1].outputs;
-            losses[i] = categ_cross_entropy(outputs, one_hot_buffer, 10);
+            train_losses[i] = categ_cross_entropy(outputs, one_hot_buffer, 10);
         }
-        // Display average loss for each epoch
-        double avg_loss = average(losses, x_train.n_images);
+
+        // Validate model
+        for (int i = 0; i < x_test.n_images; i++) {
+            // Actual inference
+            get_mnist_image_norm(image_buffer, &x_test, i);
+            forward(&model, image_buffer, 784);
+
+            // Loss computing
+            double* outputs = model.layers[model.n_layers - 1].outputs;
+            one_hot(one_hot_buffer, y_test.labels[i], 10);
+            val_losses[i] = categ_cross_entropy(outputs, one_hot_buffer, 10);
+        }
+
+        // Display average loss (average categorical cross entropy) for each epoch
         // We use the categorical cross entropy function because it's adapted
         // for multiclass classification with one hot encoded vectors
-        printf("Epoch: %d - Loss: %.10f\n", epoch+1, avg_loss);
+        double avg_train_loss = average(train_losses, x_train.n_images);
+        double avg_val_loss = average(val_losses, x_test.n_images);
+        printf("Epoch: %d - Loss: %.10f - Validation loss: %.10f\n", epoch+1, avg_train_loss, avg_val_loss);
 
         // Checkpointing: if the loss is lower than the previous loss we save the model
-        if (avg_loss < last_loss) {
-            printf("  Average loss is lower than last epoch, saving new best model...\n");
+        if (avg_val_loss < min_val_loss) {
+            printf("  Average loss is lower than last best, saving new best model...\n");
             printf("  ");
             save_model(&model, getenv("MODEL_PATH"));
             printf("\n");
+            min_val_loss = avg_val_loss;
         }
 
-        last_loss = avg_loss;
     }
     printf("--- End ---\n");
 
-    free(losses);
+    free(train_losses);
+    free(val_losses);
     free_model(&model);
     free_mnist_images(&x_train);
     free_mnist_labels(&y_train);
+    free_mnist_images(&x_test);
+    free_mnist_labels(&y_test);
 
-    // --- Inference example ---
-    MLP model2;
+    // --- Inference example on already trained model ---
+
+    /* MLP model2;
     load_model(&model2, getenv("MODEL_PATH"));
 
-    // Test using unseen data
-    idx3 x_test = read_images_mnist(getenv("IMAGES_TEST_PATH"));
-    idx1 y_test = read_labels_mnist(getenv("LABELS_TEST_PATH"));
+
 
     double* test_losses = malloc(sizeof(double) * x_test.n_images);
 
@@ -102,6 +125,6 @@ int main(int argc, char** argv) {
     free(test_losses);
     free_model(&model2);
     free_mnist_images(&x_test);
-    free_mnist_labels(&y_test);
+    free_mnist_labels(&y_test); */
     return 0;
 }
