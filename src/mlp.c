@@ -79,7 +79,6 @@ void train(MLP *m, double* raw_inputs, double* target, double lr) {
         int offset = 0;
         for (int j = 0; j < curr_layer->n_outputs; j++) {
             double error = 0;
-
             // Sum deltas of next layer weighted by next neuron weights
             for (int k = 0; k < next_layer->n_outputs; k++) {
                 // next_layer->weights[j] is the weight connecting the current neuron with the next neuron k
@@ -88,20 +87,6 @@ void train(MLP *m, double* raw_inputs, double* target, double lr) {
             offset += curr_layer->n_inputs;
             curr_layer->deltas[j] = error * curr_layer->derivatives[j];
         }
-
-        // for (int j = 0; j < curr_layer->n_neurons; j++) {
-        //     neuron* n = &curr_layer->neurons[j];
-        //     double error = 0;
-
-        //     // Sum deltas of next layer weighted by next neuron weights
-        //     for (int k = 0; k < next_layer->n_neurons; k++) {
-        //         neuron* next_n = &next_layer->neurons[k];
-        //         // next_n->weights[j] is the weight connecting the current neuron with the next neuron k
-        //         error += next_n->delta * next_n->weights[j];
-        //     }
-        //     // n->delta = error * curr_layer->activation_function->df(n->output);
-        //     n->delta = error * curr_layer->derivatives[j];
-        // }
     }
 
     // Update weights for each layer
