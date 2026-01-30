@@ -22,6 +22,7 @@ The goal of this project is to provide a transparent look at how neural networks
   - Categorical cross entropy
   - Mean Squared Error (MSE)
 - **Stochastic Training**: Implementation of basic gradient descent.
+- **Checkpointing**: Automatically save best model during training (the one with the lowest validation loss)
 - **Save & Load Weights**: Save trained weights of any model and load them afterwards to start inference right away
 - **Minimal Dependencies**: Requires only stdio.h, stdlib.h, time.h, math.h, arpa/inet.h (for endian swapping only).
 ---
