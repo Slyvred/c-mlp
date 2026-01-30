@@ -48,7 +48,7 @@ void forward(MLP *m, double* inputs, int n_inputs) {
         // For each neuron in the layer
         for (int j = 0; j < l->n_outputs; j++) {
             // Output of neuron_i is the sum of the previous layer's outputs
-            double* weights = &l->weights[j * l->n_inputs];
+            double* weights = &l->weights[j * l->n_inputs + i];
             l->raw_outputs[j] = sum(layer_inputs, weights, l->biases[j], l->n_inputs);
         }
         l->activation_function->f(l->raw_outputs, l->outputs, l->n_outputs);
