@@ -173,7 +173,9 @@ void free_model(MLP* m) {
             free(n->weights);
         }
 
-        free(l->derivatives);
+        // It's null if we loaded a pre trained for inference since the derivatives are just used during training
+        // for backprop. If you wish to re-train/finetune a pre train model, uncomment the malloc in the load_model function below
+        if (l->derivatives != NULL) free(l->derivatives);
         free(l->outputs);
         free(l->raw_outputs);
         free(l->neurons);
@@ -234,8 +236,12 @@ void load_model(MLP* m, const char* path) {
         l->neurons = malloc(l->n_neurons * sizeof(neuron));
 
         l->outputs = malloc(l->n_neurons * sizeof(double));
+
         l->raw_outputs = malloc(l->n_neurons * sizeof(double));
-        l->derivatives = malloc(l->n_neurons * sizeof(double));
+
+        // This is just used for training, so we don't need if we're only doing inference
+        // If you wish to train a model you loaded just replace the NULL by the commented malloc
+        l->derivatives = NULL; // malloc(l->n_neurons * sizeof(double));
 
         // Read number of weights
         fread(&l->neurons[0].n_weights, sizeof(int), 1, f);
@@ -244,7 +250,7 @@ void load_model(MLP* m, const char* path) {
         for (int j = 0; j < l->n_neurons; j++) {
             neuron* n = &l->neurons[j];
 
-            n->n_weights = l->neurons[0].n_weights; // Same number of weights for each layer
+            n->n_weights = l->neurons[0].n_weights; // Same number of weights for each neuron of a given layer
             n->weights = malloc(sizeof(double) * n->n_weights);
 
             // Read weights and bias
@@ -269,6 +275,8 @@ void load_model(MLP* m, const char* path) {
                 l->activation_function = &softm;
                 break;
             default:
+                printf("ERROR: Unknown activation function, got: %d which isn't in the fn_name enum.\n", fn_name_buf);
+                exit(EXIT_FAILURE);
                 break;
         }
     }
