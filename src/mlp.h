@@ -7,6 +7,13 @@ typedef enum {
   LINEAR
 }fn_name;
 
+typedef enum {
+    DENSE,
+    CONV2D,
+    POOLING,
+    FLATTEN
+}layer_type;
+
 typedef struct {
     void (*f)(double* inputs, double* outputs, int len);
     void (*df)(double* inputs, double* outputs, int len);
@@ -18,23 +25,18 @@ extern function lin;
 extern function rel;
 extern function softm;
 
-typedef struct {
-    // y = a_i * x_i + b
-    double* weights;
-    int n_weights;
-    double output;
-    double bias;
-    double delta; // Neuron error
-}neuron;
-
 // layer = list of neurons with activation function
 typedef struct {
-    int n_neurons;
-    neuron* neurons;
+    layer_type type;
+    int n_inputs;           // = Input shape = Number of weights
+    int n_outputs;          // Number of neurons
+    double* weights;        // List of all the weights of all the neurons in the layer
+    double* biases;         // Bias of each neuron in the layer
+    double* raw_outputs;    // Outputs of all the neurons (buffer for training)
+    double* outputs;        // Outputs of all the neurons after the activation function
+    double* derivatives;    // Outputs of all the neurons after the activation function's derivative
+    double* deltas;         // Error of each neuron
     function* activation_function;
-    double* raw_outputs;
-    double* outputs; // Output of each neuron of the layer
-    double* derivatives;
 }layer;
 
 typedef struct {
@@ -44,8 +46,7 @@ typedef struct {
 
 
 double ranged_rand(double min, double max);
-void init_neuron(neuron* neuron, int n_parameters);
-layer dense(int n_neurons, int n_parameters, function *activation_function);
+layer dense(int n_neurons, int n_inputs, function *activation_function);
 void forward(MLP *m, double* inputs, int n_inputs);
 void train(MLP *m, double* raw_inputs, double* target, double lr);
 int get_num_parameters(MLP* mlp);
