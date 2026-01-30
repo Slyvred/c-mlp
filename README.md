@@ -104,7 +104,6 @@ The provided [main.c](src/main.c) contains a model trained to classify written d
 
 ```
 env $(grep -v '^#' .env | xargs) ./main 12 0.01
-
 Layer 0: Neurons: 256 | Parameters: 784
 Layer 1: Neurons: 128 | Parameters: 256
 Layer 2: Neurons: 64 | Parameters: 128
@@ -112,33 +111,53 @@ Layer 3: Neurons: 10 | Parameters: 64
 Total number of parameters: 242762
 
  --- Training model ---
-Epoch: 1 - Loss: 0.2365814368
-  Loss is lower than last loss, saving new best model...
+Epoch: 1 - Loss: 0.5377525649 - Validation loss: 0.2354593432
+  Average loss is lower than last best, saving new best model...
   Model saved to: /Users/remi/Documents/dev/c-mlp/model.weights
 
-Epoch: 2 - Loss: 0.1013666919
-  Loss is lower than last loss, saving new best model...
+Epoch: 2 - Loss: 0.1875707645 - Validation loss: 0.1613157459
+  Average loss is lower than last best, saving new best model...
   Model saved to: /Users/remi/Documents/dev/c-mlp/model.weights
 
-Epoch: 3 - Loss: 0.0705100539
-  Loss is lower than last loss, saving new best model...
+Epoch: 3 - Loss: 0.1295952292 - Validation loss: 0.1250332068
+  Average loss is lower than last best, saving new best model...
   Model saved to: /Users/remi/Documents/dev/c-mlp/model.weights
 
-Epoch: 4 - Loss: 0.0537216472
-  Loss is lower than last loss, saving new best model...
+Epoch: 4 - Loss: 0.0970815318 - Validation loss: 0.1064396590
+  Average loss is lower than last best, saving new best model...
   Model saved to: /Users/remi/Documents/dev/c-mlp/model.weights
 
+Epoch: 5 - Loss: 0.0759000559 - Validation loss: 0.0978767503
+  Average loss is lower than last best, saving new best model...
+  Model saved to: /Users/remi/Documents/dev/c-mlp/model.weights
+
+Epoch: 6 - Loss: 0.0609901835 - Validation loss: 0.0925132303
+  Average loss is lower than last best, saving new best model...
+  Model saved to: /Users/remi/Documents/dev/c-mlp/model.weights
+
+Epoch: 7 - Loss: 0.0496431870 - Validation loss: 0.0886218753
+  Average loss is lower than last best, saving new best model...
+  Model saved to: /Users/remi/Documents/dev/c-mlp/model.weights
+
+Epoch: 8 - Loss: 0.0405638559 - Validation loss: 0.0867092326
+  Average loss is lower than last best, saving new best model...
+  Model saved to: /Users/remi/Documents/dev/c-mlp/model.weights
+
+Epoch: 9 - Loss: 0.0331091426 - Validation loss: 0.0864263095
+  Average loss is lower than last best, saving new best model...
+  Model saved to: /Users/remi/Documents/dev/c-mlp/model.weights
+
+Epoch: 10 - Loss: 0.0265073151 - Validation loss: 0.0889713755
+Epoch: 11 - Loss: 0.0210336257 - Validation loss: 0.0882901016
+Epoch: 12 - Loss: 0.0166078442 - Validation loss: 0.0881564415
+Epoch: 13 - Loss: 0.0129371717 - Validation loss: 0.0875779472
 [...]
-
-Epoch: 10 - Loss: 0.0242365552
-  Loss is lower than last loss, saving new best model...
-  Model saved to: /Users/remi/Documents/dev/c-mlp/model.weights
-
-Epoch: 11 - Loss: 0.0248533471
-Epoch: 12 - Loss: 0.0215150055
-  Loss is lower than last loss, saving new best model...
-  Model saved to: /Users/remi/Documents/dev/c-mlp/model.weights
-
+Epoch: 27 - Loss: 0.0008680156 - Validation loss: 0.0938749218
+Epoch: 28 - Loss: 0.0007863892 - Validation loss: 0.0943036234
+Epoch: 29 - Loss: 0.0007179017 - Validation loss: 0.0948248200
+Epoch: 30 - Loss: 0.0006590907 - Validation loss: 0.0952363930
+Epoch: 31 - Loss: 0.0006094295 - Validation loss: 0.0958026959
+Epoch: 32 - Loss: 0.0005653673 - Validation loss: 0.0961912048
 --- End ---
 Successfully loaded model !
 
@@ -149,25 +168,26 @@ Layer 3: Neurons: 10 | Parameters: 64
 Total number of parameters: 242762
 
 --- Results ---
-Output: 7 | Actual: 7 | Loss: 0.0000000000
-Output: 6 | Actual: 6 | Loss: 0.0000000000
-Output: 3 | Actual: 3 | Loss: 0.0000000000
-Output: 4 | Actual: 4 | Loss: 0.0000000000
-Output: 2 | Actual: 2 | Loss: 0.0000000000
-Output: 3 | Actual: 3 | Loss: 0.0000000000
-Output: 6 | Actual: 6 | Loss: 0.0000000000
-Output: 1 | Actual: 1 | Loss: 0.0000000000
-Output: 8 | Actual: 8 | Loss: 0.0000000000
-Output: 1 | Actual: 1 | Loss: 0.0000000000
-Output: 9 | Actual: 9 | Loss: 0.0000000000
+Output: 7 | Actual: 7
+Output: 6 | Actual: 6
+Output: 3 | Actual: 3
+Output: 4 | Actual: 4
+Output: 2 | Actual: 2
+Output: 3 | Actual: 3
+Output: 6 | Actual: 6
+Output: 1 | Actual: 1
+Output: 8 | Actual: 8
+Output: 1 | Actual: 1
+Output: 9 | Actual: 9
 [...]
-Output: 3 | Actual: 3 | Loss: 0.0000000000
-Output: 1 | Actual: 1 | Loss: 0.0000000000
-Output: 7 | Actual: 7 | Loss: 0.0000000000
-Output: 5 | Actual: 5 | Loss: 0.0000000000
-Output: 2 | Actual: 2 | Loss: 0.0000000000
-Output: 5 | Actual: 5 | Loss: 0.0000000000
-Output: 2 | Actual: 2 | Loss: 0.0000000000
-Output: 0 | Actual: 0 | Loss: 0.0000000000
-Output: 8 | Actual: 8 | Loss: 0.0000000000
+Output: 3 | Actual: 3 
+Output: 1 | Actual: 1 
+Output: 7 | Actual: 7 
+Output: 5 | Actual: 5 
+Output: 2 | Actual: 2 
+Output: 5 | Actual: 5 
+Output: 2 | Actual: 2 
+Output: 0 | Actual: 0 
+Output: 8 | Actual: 8
+Average loss: 0.0864263095
 ```
