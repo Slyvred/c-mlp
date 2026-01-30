@@ -32,10 +32,10 @@ typedef struct {
     int n_outputs;          // Number of neurons
     double* weights;        // List of all the weights of all the neurons in the layer
     double* biases;         // Bias of each neuron in the layer
-    double* raw_outputs;    // Outputs of all the neurons (buffer for training)
+    double* raw_outputs;    // Outputs of all the neurons
     double* outputs;        // Outputs of all the neurons after the activation function
-    double* derivatives;    // Outputs of all the neurons after the activation function's derivative
-    double* deltas;         // Error of each neuron
+    double* derivatives;    // Outputs of all the neurons after the activation function's derivative (for training)
+    double* deltas;         // Error of each neuron (for training)
     function* activation_function;
 }layer;
 

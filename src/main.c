@@ -72,36 +72,36 @@ int main(int argc, char** argv) {
     free_mnist_labels(&y_train);
 
     // --- Inference example ---
-    MLP model2;
-    load_model(&model2, getenv("MODEL_PATH"));
+    // MLP model2;
+    // load_model(&model2, getenv("MODEL_PATH"));
 
-    // Test using unseen data
-    idx3 x_test = read_images_mnist(getenv("IMAGES_TEST_PATH"));
-    idx1 y_test = read_labels_mnist(getenv("LABELS_TEST_PATH"));
+    // // Test using unseen data
+    // idx3 x_test = read_images_mnist(getenv("IMAGES_TEST_PATH"));
+    // idx1 y_test = read_labels_mnist(getenv("LABELS_TEST_PATH"));
 
-    double* test_losses = malloc(sizeof(double) * x_test.n_images);
+    // double* test_losses = malloc(sizeof(double) * x_test.n_images);
 
-    printf("\n--- Results ---\n");
-    for (int i = 0; i < x_test.n_images; i++) {
-        // Actual inference
-        get_mnist_image_norm(image_buffer, &x_test, i);
-        forward(&model2, image_buffer, 784);
+    // printf("\n--- Results ---\n");
+    // for (int i = 0; i < x_test.n_images; i++) {
+    //     // Actual inference
+    //     get_mnist_image_norm(image_buffer, &x_test, i);
+    //     forward(&model2, image_buffer, 784);
 
-        // Loss computing
-        double* outputs = model2.layers[model2.n_layers - 1].outputs;
-        one_hot(one_hot_buffer, y_test.labels[i], 10);
-        test_losses[i] = categ_cross_entropy(outputs, one_hot_buffer, 10);
+    //     // Loss computing
+    //     double* outputs = model2.layers[model2.n_layers - 1].outputs;
+    //     one_hot(one_hot_buffer, y_test.labels[i], 10);
+    //     test_losses[i] = categ_cross_entropy(outputs, one_hot_buffer, 10);
 
-        if (i % 100 == 0) {
-            int predicted = index_of_max(outputs, 10);
-            printf("Output: %d | Actual: %d\n", predicted, y_test.labels[i]);
-        }
-    }
-    printf("Average loss: %.10f\n", average(test_losses, x_test.n_images));
+    //     if (i % 100 == 0) {
+    //         int predicted = index_of_max(outputs, 10);
+    //         printf("Output: %d | Actual: %d\n", predicted, y_test.labels[i]);
+    //     }
+    // }
+    // printf("Average loss: %.10f\n", average(test_losses, x_test.n_images));
 
-    free(test_losses);
-    free_model(&model2);
-    free_mnist_images(&x_test);
-    free_mnist_labels(&y_test);
+    // free(test_losses);
+    // free_model(&model2);
+    // free_mnist_images(&x_test);
+    // free_mnist_labels(&y_test);
     return 0;
 }

@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
+#include <string.h>
 #include "mlp.h"
 #include "math_functions.h"
 
@@ -19,7 +20,6 @@ layer dense(int n_neurons, int n_inputs, function *activation_function) {
     l.type = DENSE;
     l.n_inputs = n_inputs;
     l.n_outputs = n_neurons;
-    l.activation_function = activation_function;
     l.biases = calloc(n_neurons, sizeof(double));                   // Biases set to 0
     l.weights = malloc(n_neurons * n_inputs * sizeof(double));      // n_neurons with n_inputs per neuron
     l.outputs = malloc(n_neurons * sizeof(double));
@@ -27,6 +27,7 @@ layer dense(int n_neurons, int n_inputs, function *activation_function) {
     l.derivatives = malloc(n_neurons * sizeof(double));
     l.deltas = malloc(n_neurons * sizeof(double));
 
+    l.activation_function = activation_function;
     // Initialize weights
     double limit = sqrt(2.0 / n_inputs);
     for (int i = 0; i < n_neurons * n_inputs; i++) {
@@ -45,13 +46,10 @@ void forward(MLP *m, double* inputs, int n_inputs) {
         else layer_inputs = m->layers[i - 1].outputs;
 
         // For each neuron in the layer
-        int offset = 0;
-        for (int i = 0; i < l->n_outputs; i++) {
+        for (int j = 0; j < l->n_outputs; j++) {
             // Output of neuron_i is the sum of the previous layer's outputs
-            l->raw_outputs[i] = sum(layer_inputs, &l->weights[offset], l->biases[offset], l->n_inputs);
-
-            // We jump to the next neuron in the layer (aka next "region" with the weights)
-            offset += l->n_inputs;
+            double* weights = &l->weights[j * l->n_inputs];
+            l->raw_outputs[j] = sum(layer_inputs, weights, l->biases[j], l->n_inputs);
         }
         l->activation_function->f(l->raw_outputs, l->outputs, l->n_outputs);
     }
@@ -63,10 +61,8 @@ void train(MLP *m, double* raw_inputs, double* target, double lr) {
     layer* l = &m->layers[m->n_layers - 1];
     l->activation_function->df(l->raw_outputs, l->derivatives, l->n_outputs);
 
-    int offset = 0;
     for (int i = 0; i < l->n_outputs; i++) {
         l->deltas[i] = (l->outputs[i] - target[i]) * l->derivatives[i];
-        offset += l->n_inputs;
     }
 
     // Calculate layer error from last hidden layer to input
@@ -76,15 +72,14 @@ void train(MLP *m, double* raw_inputs, double* target, double lr) {
 
         curr_layer->activation_function->df(curr_layer->raw_outputs, curr_layer->derivatives, curr_layer->n_outputs);
 
-        int offset = 0;
         for (int j = 0; j < curr_layer->n_outputs; j++) {
             double error = 0;
             // Sum deltas of next layer weighted by next neuron weights
             for (int k = 0; k < next_layer->n_outputs; k++) {
                 // next_layer->weights[j] is the weight connecting the current neuron with the next neuron k
-                error += next_layer->deltas[k] * next_layer->weights[j];
+                int weight_index = k * next_layer->n_inputs + j;
+                error += next_layer->deltas[k] * next_layer->weights[weight_index];
             }
-            offset += curr_layer->n_inputs;
             curr_layer->deltas[j] = error * curr_layer->derivatives[j];
         }
     }
@@ -92,24 +87,21 @@ void train(MLP *m, double* raw_inputs, double* target, double lr) {
     // Update weights for each layer
     for (int i = 0; i < m->n_layers; i++) {
         layer* l = &m->layers[i];
-        double* inputs_for_layer;
+        double* layer_inputs;
 
         // For input layer, input is the actual input
-        if (i == 0) inputs_for_layer = raw_inputs;
-        else inputs_for_layer = m->layers[i - 1].outputs;
+        if (i == 0) layer_inputs = raw_inputs;
+        else layer_inputs = m->layers[i - 1].outputs;
 
         // For each neuron
-        for (int j = 0; j < l->n_neurons; j++) {
-            neuron* n = &l->neurons[j];
-
-            // Update weights
-            for (int k = 0; k < n->n_weights; k++) {
-                // weight -= learning_rate * delta * input
-                n->weights[k] -= lr * n->delta * inputs_for_layer[k];
+        for (int j = 0; j < l->n_outputs; j++) {
+            // l->deltas[i] = (l->outputs[i] - target[i]) * l->derivatives[i];
+            // For each weight
+            for (int k = 0; k < l->n_inputs; k++) {
+                int index = k * l->n_inputs + j;
+                l->weights[index] -= lr * l->deltas[k] * layer_inputs[k];
             }
-
-            // Update bias
-            n->bias -= lr * n->delta;
+            l->biases[j] -= lr * l->deltas[j];
         }
     }
 }
@@ -118,7 +110,7 @@ int get_num_parameters(MLP* mlp) {
     int parameters = 0;
     for (int i = 0; i < mlp->n_layers; i++) {
         layer* l = &mlp->layers[i];
-        parameters += l->n_neurons * (l->neurons[0].n_weights + 1); // + 1 for bias
+        parameters += l->n_outputs * (l->n_inputs + 1); // + 1 for bias
     }
     return parameters;
 }
@@ -127,7 +119,7 @@ void print_model(MLP* m) {
     printf("\n");
     for (int i = 0; i < m->n_layers; i++) {
         layer* l = &m->layers[i];
-        printf("Layer %d: Neurons: %d | Parameters: %d\n", i, l->n_neurons, l->neurons[0].n_weights);
+        printf("Layer %d: Neurons: %d | Parameters: %d\n", i, l->n_outputs, l->n_inputs);
     }
     printf("Total number of parameters: %d\n", get_num_parameters(m));
 }
@@ -147,7 +139,7 @@ void print_output(MLP *m, double* input, int input_len, double *expected, int ex
     print_list(input, input_len);
 
     printf(" | Outputs: ");
-    print_list(output->outputs, output->n_neurons);
+    print_list(output->outputs, output->n_outputs);
     printf(" | Expected: ");
     print_list(expected, expected_len);
     printf("\n");
@@ -162,17 +154,15 @@ void free_model(MLP* m) {
     for (int i = 0; i < m->n_layers; i++) {
         layer* l = &m->layers[i];
 
-        for (int j = 0; j < l->n_neurons; j++) {
-            neuron* n = &l->neurons[j];
-            free(n->weights);
-        }
+        free(l->biases);
+        free(l->weights);
+        free(l->outputs);
+        free(l->raw_outputs);
 
         // It's null if we loaded a pre trained for inference since the derivatives are just used during training
         // for backprop. If you wish to re-train/finetune a pre train model, uncomment the malloc in the load_model function below
+        if (l->deltas != NULL) free(l->deltas);
         if (l->derivatives != NULL) free(l->derivatives);
-        free(l->outputs);
-        free(l->raw_outputs);
-        free(l->neurons);
     }
 }
 
@@ -191,17 +181,12 @@ void save_model(MLP* m, const char* path) {
         layer* l = &m->layers[i];
 
         // Write number of neurons
-        fwrite(&l->n_neurons, sizeof(int), 1, f);
+        fwrite(&l->type, sizeof(int), 1, f);
+        fwrite(&l->n_outputs, sizeof(int), 1, f);
         // Write number of weights
-        fwrite(&l->neurons[0].n_weights, sizeof(int), 1, f);
-
-        // For each neuron
-        for (int j = 0; j < l->n_neurons; j++) {
-            neuron* n = &l->neurons[j];
-            // Write weights and bias
-            fwrite(n->weights, sizeof(double), n->n_weights, f);
-            fwrite(&n->bias, sizeof(double), 1, f);
-        }
+        fwrite(&l->n_inputs, sizeof(int), 1, f);
+        fwrite(l->weights, sizeof(double), l->n_inputs, f);
+        fwrite(l->biases, sizeof(double), l->n_outputs, f);
         fwrite(&l->activation_function->function_name, sizeof(int), 1, f);
     }
     fclose(f);
@@ -218,39 +203,25 @@ void load_model(MLP* m, const char* path) {
     // Read number of layers
     fread(&m->n_layers, sizeof(int), 1, f);
 
-    m->layers = malloc(m->n_layers * sizeof(layer));
-
     // For each layer
     for (int i = 0; i < m->n_layers; i++) {
         layer* l = &m->layers[i];
 
         // Read number of neurons
-        fread(&l->n_neurons, sizeof(int), 1, f);
+        fread(&l->type, sizeof(int), 1, f);
+        fread(&l->n_outputs, sizeof(int), 1, f);
+        // Write number of weights
+        fread(&l->n_inputs, sizeof(int), 1, f);
 
-        l->neurons = malloc(l->n_neurons * sizeof(neuron));
+        l->weights = malloc(l->n_inputs * l->n_outputs * sizeof(double));
+        l->biases = malloc(l->n_outputs * sizeof(double));
+        l->outputs = malloc(l->n_outputs * sizeof(double));
+        l->raw_outputs = malloc(l->n_outputs * sizeof(double));
+        l->derivatives = NULL;
+        l->deltas = NULL;
 
-        l->outputs = malloc(l->n_neurons * sizeof(double));
-
-        l->raw_outputs = malloc(l->n_neurons * sizeof(double));
-
-        // This is just used for training, so we don't need if we're only doing inference
-        // If you wish to train a model you loaded just replace the NULL by the commented malloc
-        l->derivatives = NULL; // malloc(l->n_neurons * sizeof(double));
-
-        // Read number of weights
-        fread(&l->neurons[0].n_weights, sizeof(int), 1, f);
-
-        // For each neuron
-        for (int j = 0; j < l->n_neurons; j++) {
-            neuron* n = &l->neurons[j];
-
-            n->n_weights = l->neurons[0].n_weights; // Same number of weights for each neuron of a given layer
-            n->weights = malloc(sizeof(double) * n->n_weights);
-
-            // Read weights and bias
-            fread(n->weights, sizeof(double), n->n_weights, f);
-            fread(&n->bias, sizeof(double), 1, f);
-        }
+        fread(l->weights, sizeof(double), l->n_inputs * l->n_outputs, f);
+        fread(l->biases, sizeof(double), l->n_outputs, f);
 
         int fn_name_buf;
         fread(&fn_name_buf, sizeof(int), 1, f);
@@ -274,6 +245,7 @@ void load_model(MLP* m, const char* path) {
                 break;
         }
     }
+    fclose(f);
     printf("Successfully loaded model !\n");
     print_model(m);
 }
