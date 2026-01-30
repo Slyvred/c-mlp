@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include "mlp.h"
 #include "math_functions.h"
-#include "mongoose.h"
+#include "mongoose/mongoose.h"
 
 MLP model;
 
@@ -40,7 +40,7 @@ static void fn(struct mg_connection *c, int ev, void *ev_data) {
             unsigned char* raw_data = (unsigned char*) wm->data.buf;
             double input_vector[784];
 
-            // Normalize vector here
+            // Normalize vector here since it allows us to save bandwidth
             for (int i = 0; i < 784; i++) {
                 input_vector[i] = (double)raw_data[i] / 255.0;
             }
@@ -66,9 +66,7 @@ int main(int argc, char** argv) {
     mg_http_listen(&mgr, "http://0.0.0.0:8000", fn, NULL);
     printf("Listening on ws://127.0.0.1:8000\n");
 
-    for (;;) {
-        mg_mgr_poll(&mgr, 100); // 100ms
-    }
+    for (;;) mg_mgr_poll(&mgr, 100); // 100ms
 
     mg_mgr_free(&mgr);
     free_model(&model);
