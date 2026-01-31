@@ -28,12 +28,14 @@ void linear_deriv(float* inputs, float* outputs, int len) {
 }
 
 void leaky_relu(float* inputs, float* outputs, int len) {
+    #pragma omp parallel for simd
     for (int i = 0; i < len; i++) {
         outputs[i] = inputs[i] >= 0 ? inputs[i] : LEAKY_RELU_SLOPE * inputs[i];
     }
 }
 
 void leaky_relu_deriv(float* inputs, float* outputs, int len) {
+    #pragma omp parallel for simd
     for (int i = 0; i < len; i++) {
         outputs[i] = inputs[i] >= 0 ? 1 : LEAKY_RELU_SLOPE;
     }
@@ -76,6 +78,8 @@ void softmax_deriv(float* inputs, float* outputs, int len) {
 
 float sum(float inputs[], float weights[], float bias, int len) {
     float sum = 0;
+
+    // #pragma omp simd reduction(+:res)
     for (int i = 0; i < len; i++) {
         sum += inputs[i] * weights[i];
     }

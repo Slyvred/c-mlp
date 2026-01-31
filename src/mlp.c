@@ -46,6 +46,7 @@ void forward(MLP *m, float* inputs, int n_inputs) {
         else layer_inputs = m->layers[i - 1].outputs;
 
         // For each neuron in the layer
+        #pragma omp parallel for
         for (int j = 0; j < l->n_outputs; j++) {
             // Output of neuron_i is the sum of the previous layer's outputs
             float* weights = &l->weights[j * l->n_inputs];
@@ -72,6 +73,7 @@ void train(MLP *m, float* raw_inputs, float* target, float lr) {
 
         curr_layer->activation_function->df(curr_layer->raw_outputs, curr_layer->derivatives, curr_layer->n_outputs);
 
+        #pragma omp parallel for
         for (int j = 0; j < curr_layer->n_outputs; j++) {
             float error = 0;
             // Sum deltas of next layer weighted by next neuron weights
@@ -94,6 +96,7 @@ void train(MLP *m, float* raw_inputs, float* target, float lr) {
         else layer_inputs = m->layers[i - 1].outputs;
 
         // For each neuron
+        #pragma omp parallel for
         for (int j = 0; j < l->n_outputs; j++) {
             float delta = l->deltas[j];
             // For each weight
