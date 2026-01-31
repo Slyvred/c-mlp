@@ -167,6 +167,7 @@ void free_model(MLP* m) {
         if (l->deltas != NULL) free(l->deltas);
         if (l->derivatives != NULL) free(l->derivatives);
     }
+    if (m->is_in_heap) free(m->layers);
 }
 
 void save_model(MLP* m, const char* path) {
@@ -206,6 +207,7 @@ void load_model(MLP* m, const char* path) {
     // Read number of layers
     fread(&m->n_layers, sizeof(int), 1, f);
     m->layers = malloc(m->n_layers * sizeof(layer));
+    m->is_in_heap = 1;
 
     printf("Layers: %d\n", m->n_layers);
 

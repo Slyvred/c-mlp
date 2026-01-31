@@ -40,8 +40,11 @@ typedef struct {
 }layer;
 
 typedef struct {
-    layer* layers; // list of layers
-    int n_layers;
+    layer* layers;      // List of connected layers
+    int n_layers;       // Total number of layers in the network
+    // A created model is in stack (cf main.c) while a loaded one is entierly in heap (I mean the layers here).
+    // We need to keep track of that in order to free the model's layers properly
+    int is_in_heap;
 } MLP;
 
 

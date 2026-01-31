@@ -19,7 +19,7 @@ int main(int argc, char** argv) {
         dense(64, 128, &rel),
         dense(10, 64, &softm), // 10 is our output shape (because we have 10 classes)
     };
-    MLP model = { layers, sizeof(layers) / sizeof(layer) };
+    MLP model = { layers, sizeof(layers) / sizeof(layer), 0};
 
     print_model(&model);
 
@@ -118,7 +118,8 @@ int main(int argc, char** argv) {
     //         printf("Output: %d | Actual: %d\n", predicted, y_test.labels[i]);
     //     }
     // }
-    // printf("Average loss: %.10f\n", average(test_losses, x_test.n_images));
+    // double average_loss = average(test_losses, x_test.n_images);
+    // printf("Average loss: %.10f\n", average_loss);
 
     // free(test_losses);
     // free_model(&model2);
