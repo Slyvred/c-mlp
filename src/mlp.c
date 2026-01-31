@@ -11,8 +11,8 @@ function lin = {linear, linear_deriv, LINEAR};
 function rel = {leaky_relu, leaky_relu_deriv, RELU};
 function softm = {softmax, softmax_deriv, SOFTMAX};
 
-double ranged_rand(double min, double max) {
-    return ((double)rand() / RAND_MAX) * (max - min) + min;
+float ranged_rand(float min, float max) {
+    return ((float)rand() / RAND_MAX) * (max - min) + min;
 }
 
 layer dense(int n_neurons, int n_inputs, function *activation_function) {
@@ -20,26 +20,26 @@ layer dense(int n_neurons, int n_inputs, function *activation_function) {
     l.type = DENSE;
     l.n_inputs = n_inputs;
     l.n_outputs = n_neurons;
-    l.biases = calloc(n_neurons, sizeof(double));                   // Biases set to 0
-    l.weights = malloc(n_neurons * n_inputs * sizeof(double));      // n_neurons with n_inputs per neuron
-    l.outputs = malloc(n_neurons * sizeof(double));
-    l.raw_outputs = malloc(n_neurons * sizeof(double));
-    l.derivatives = malloc(n_neurons * sizeof(double));
-    l.deltas = malloc(n_neurons * sizeof(double));
+    l.biases = calloc(n_neurons, sizeof(float));                   // Biases set to 0
+    l.weights = malloc(n_neurons * n_inputs * sizeof(float));      // n_neurons with n_inputs per neuron
+    l.outputs = malloc(n_neurons * sizeof(float));
+    l.raw_outputs = malloc(n_neurons * sizeof(float));
+    l.derivatives = malloc(n_neurons * sizeof(float));
+    l.deltas = malloc(n_neurons * sizeof(float));
 
     l.activation_function = activation_function;
     // Initialize weights
-    double limit = sqrt(2.0 / n_inputs);
+    float limit = sqrt(2.0 / n_inputs);
     for (int i = 0; i < n_neurons * n_inputs; i++) {
         l.weights[i] = ranged_rand(-limit, limit);
     }
     return l;
 }
 
-void forward(MLP *m, double* inputs, int n_inputs) {
+void forward(MLP *m, float* inputs, int n_inputs) {
     for (int i = 0; i < m->n_layers; i++) {
         layer* l = &m->layers[i];
-        double* layer_inputs;
+        float* layer_inputs;
 
         // For input layer, input is the actual input
         if (i == 0) layer_inputs = inputs;
@@ -48,7 +48,7 @@ void forward(MLP *m, double* inputs, int n_inputs) {
         // For each neuron in the layer
         for (int j = 0; j < l->n_outputs; j++) {
             // Output of neuron_i is the sum of the previous layer's outputs
-            double* weights = &l->weights[j * l->n_inputs];
+            float* weights = &l->weights[j * l->n_inputs];
             l->raw_outputs[j] = sum(layer_inputs, weights, l->biases[j], l->n_inputs);
         }
         l->activation_function->f(l->raw_outputs, l->outputs, l->n_outputs);
@@ -56,7 +56,7 @@ void forward(MLP *m, double* inputs, int n_inputs) {
 }
 
 // Entraînement (Backpropagation)
-void train(MLP *m, double* raw_inputs, double* target, double lr) {
+void train(MLP *m, float* raw_inputs, float* target, float lr) {
     // Calculate output layer error
     layer* l = &m->layers[m->n_layers - 1];
     l->activation_function->df(l->raw_outputs, l->derivatives, l->n_outputs);
@@ -73,7 +73,7 @@ void train(MLP *m, double* raw_inputs, double* target, double lr) {
         curr_layer->activation_function->df(curr_layer->raw_outputs, curr_layer->derivatives, curr_layer->n_outputs);
 
         for (int j = 0; j < curr_layer->n_outputs; j++) {
-            double error = 0;
+            float error = 0;
             // Sum deltas of next layer weighted by next neuron weights
             for (int k = 0; k < next_layer->n_outputs; k++) {
                 // next_layer->weights[j] is the weight connecting the current neuron with the next neuron k
@@ -87,7 +87,7 @@ void train(MLP *m, double* raw_inputs, double* target, double lr) {
     // Update weights for each layer
     for (int i = 0; i < m->n_layers; i++) {
         layer* l = &m->layers[i];
-        double* layer_inputs;
+        float* layer_inputs;
 
         // For input layer, input is the actual input
         if (i == 0) layer_inputs = raw_inputs;
@@ -95,7 +95,7 @@ void train(MLP *m, double* raw_inputs, double* target, double lr) {
 
         // For each neuron
         for (int j = 0; j < l->n_outputs; j++) {
-            double delta = l->deltas[j];
+            float delta = l->deltas[j];
             // For each weight
             for (int k = 0; k < l->n_inputs; k++) {
                 int index = j * l->n_inputs + k;
@@ -124,7 +124,7 @@ void print_model(MLP* m) {
     printf("Total number of parameters: %d\n", get_num_parameters(m));
 }
 
-void print_list(double* list, int len) {
+void print_list(float* list, int len) {
     printf("[");
     for (int i = 0; i < len; i++) {
         if (i+1 >= len) printf("%.2f", list[i]);
@@ -133,7 +133,7 @@ void print_list(double* list, int len) {
     printf("]");
 }
 
-void print_output(MLP *m, double* input, int input_len, double *expected, int expected_len) {
+void print_output(MLP *m, float* input, int input_len, float *expected, int expected_len) {
     layer* output = &m->layers[m->n_layers - 1];
     printf("Inputs: ");
     print_list(input, input_len);
@@ -145,7 +145,7 @@ void print_output(MLP *m, double* input, int input_len, double *expected, int ex
     printf("\n");
 }
 
-void one_hot(double* output, int input, int n_classes) {
+void one_hot(float* output, int input, int n_classes) {
     for (int i = 0; i < n_classes; i++) output[i] = 0; // Set/Reset buffer
     output[input] = 1.0;
 }
@@ -185,8 +185,8 @@ void save_model(MLP* m, const char* path) {
         fwrite(&l->n_outputs, sizeof(int), 1, f);
         // Write number of weights
         fwrite(&l->n_inputs, sizeof(int), 1, f);
-        fwrite(l->weights, sizeof(double), l->n_inputs, f);
-        fwrite(l->biases, sizeof(double), l->n_outputs, f);
+        fwrite(l->weights, sizeof(float), l->n_inputs * l->n_outputs, f); // l->n_inputs = number of weights of 1 neuron, we need to multiply it by the number of neurons in the layer
+        fwrite(l->biases, sizeof(float), l->n_outputs, f);
         fwrite(&l->activation_function->function_name, sizeof(int), 1, f);
     }
     fclose(f);
@@ -202,6 +202,9 @@ void load_model(MLP* m, const char* path) {
 
     // Read number of layers
     fread(&m->n_layers, sizeof(int), 1, f);
+    m->layers = malloc(m->n_layers * sizeof(layer));
+
+    printf("Layers: %d\n", m->n_layers);
 
     // For each layer
     for (int i = 0; i < m->n_layers; i++) {
@@ -213,15 +216,15 @@ void load_model(MLP* m, const char* path) {
         // Write number of weights
         fread(&l->n_inputs, sizeof(int), 1, f);
 
-        l->weights = malloc(l->n_inputs * l->n_outputs * sizeof(double));
-        l->biases = malloc(l->n_outputs * sizeof(double));
-        l->outputs = malloc(l->n_outputs * sizeof(double));
-        l->raw_outputs = malloc(l->n_outputs * sizeof(double));
+        l->weights = malloc(l->n_inputs * l->n_outputs * sizeof(float));
+        l->biases = malloc(l->n_outputs * sizeof(float));
+        l->outputs = malloc(l->n_outputs * sizeof(float));
+        l->raw_outputs = malloc(l->n_outputs * sizeof(float));
         l->derivatives = NULL;
         l->deltas = NULL;
 
-        fread(l->weights, sizeof(double), l->n_inputs * l->n_outputs, f);
-        fread(l->biases, sizeof(double), l->n_outputs, f);
+        fread(l->weights, sizeof(float), l->n_inputs * l->n_outputs, f);
+        fread(l->biases, sizeof(float), l->n_outputs, f);
 
         int fn_name_buf;
         fread(&fn_name_buf, sizeof(int), 1, f);

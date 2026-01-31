@@ -7,10 +7,10 @@ typedef struct {
 }vec2;
 
 typedef struct {
-    double* inputs;
-    double* outputs;
-    double* filter;
-    double* deltas;
+    float* inputs;
+    float* outputs;
+    float* filter;
+    float* deltas;
     int stride;
     vec2 filter_size;
     vec2 input_size;
