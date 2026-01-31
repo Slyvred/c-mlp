@@ -1,5 +1,16 @@
 #pragma once
 
+typedef struct {
+    int x;
+    int y;
+}Vec2_t;
+
+typedef struct {
+    int x;
+    int y;
+    int z;
+}Vec3_t;
+
 // Activations functions
 void sigmoid(float* inputs, float* outputs, int len);
 void sigmoid_deriv(float* inputs, float* outputs, int len);

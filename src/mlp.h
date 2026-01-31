@@ -1,4 +1,5 @@
 #pragma once
+#include "math_functions.h"
 
 typedef enum {
   RELU,
@@ -37,11 +38,18 @@ typedef struct {
     float* derivatives;    // Outputs of all the neurons after the activation function's derivative (for training)
     float* deltas;         // Error of each neuron (for training)
     Function_t* activation_function;
+
+    // Conv layer specific fields
+    float* filters;        // Contains our convolution filters
+    int stride;            // Stride of filter (= step of the filter)
+    int n_filters;         // Number of filters of the layer
+    Vec2_t kernel_size;    // Size of the filter (width, height, depth)
+    Vec3_t input_shape;    // Size of the input image (width, height, depth)
 }Layer_t;
 
 typedef struct {
     Layer_t* layers;      // List of connected layers
-    int n_layers;       // Total number of layers in the network
+    int n_layers;         // Total number of layers in the network
     // A created model is in stack (cf main.c) while a loaded one is entierly in heap (I mean the layers here).
     // We need to keep track of that in order to free the model's layers properly
     int is_in_heap;
@@ -50,6 +58,7 @@ typedef struct {
 
 float ranged_rand(float min, float max);
 Layer_t dense(int n_neurons, int n_inputs, Function_t *activation_function);
+Layer_t conv_2d(int n_filters, int kernel_stride, Vec2_t kernel_size, Vec3_t input_shape, Function_t *activation_function);
 void forward(Model_t *m, float* inputs, int n_inputs);
 void train(Model_t *m, float* raw_inputs, float* target, float lr);
 int get_num_parameters(Model_t* mlp);

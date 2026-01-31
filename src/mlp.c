@@ -36,6 +36,20 @@ Layer_t dense(int n_neurons, int n_inputs, Function_t *activation_function) {
     return l;
 }
 
+Layer_t conv_2d(int n_filters, int kernel_stride, Vec2_t kernel_size, Vec3_t input_shape, Function_t *activation_function) {
+    Layer_t l;
+    l.type = DENSE;
+    l.n_filters = n_filters;
+    l.stride = kernel_stride;
+    l.kernel_size = kernel_size;
+    l.input_shape = input_shape;
+    l.activation_function = activation_function;
+
+    l.filters = malloc(n_filters * kernel_size.x * kernel_size.y);
+
+    return l;
+}
+
 void forward(Model_t *m, float* inputs, int n_inputs) {
     for (int i = 0; i < m->n_layers; i++) {
         Layer_t* l = &m->layers[i];
