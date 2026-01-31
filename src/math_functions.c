@@ -4,24 +4,28 @@
 #define LEAKY_RELU_SLOPE 0.01
 
 void sigmoid(float* inputs, float* outputs, int len) {
+    #pragma omp parallel for simd
     for (int i = 0; i < len; i++) {
         outputs[i] = 1.0 / (1.0 + exp(-inputs[i]));
     }
 }
 
 void sigmoid_deriv(float* inputs, float* outputs, int len) {
+    #pragma omp parallel for simd
     for (int i = 0; i < len; i++) {
         outputs[i] = inputs[i] * (1.0 - inputs[i]);
     }
 }
 
 void linear(float* inputs, float* outputs, int len) {
+    #pragma omp parallel for simd
     for (int i = 0; i < len; i++) {
         outputs[i] = inputs[i];
     }
 }
 
 void linear_deriv(float* inputs, float* outputs, int len) {
+    #pragma omp parallel for simd
     for (int i = 0; i < len; i++) {
         outputs[i] = 1.0;
     }

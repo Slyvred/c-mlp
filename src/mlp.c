@@ -48,8 +48,12 @@ void forward(Model_t *m, float* inputs, int n_inputs) {
         // For each neuron in the layer
         #pragma omp parallel for
         for (int j = 0; j < l->n_outputs; j++) {
-            // Output of neuron_i is the sum of the previous layer's outputs
+
+            // Since we store all of our weights in a 1D array for contiguous memory allocation,
+            // we need to get the weights for the specified neuron, so we offset the weights pointer each time
             float* weights = &l->weights[j * l->n_inputs];
+
+            // Inputs of neuron_i are from the previous layer's outputs
             l->raw_outputs[j] = sum(layer_inputs, weights, l->biases[j], l->n_inputs);
         }
         l->activation_function->f(l->raw_outputs, l->outputs, l->n_outputs);
