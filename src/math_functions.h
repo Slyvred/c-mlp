@@ -1,22 +1,22 @@
 #pragma once
 
 // Activations functions
-void sigmoid(double* inputs, double* outputs, int len);
-void sigmoid_deriv(double* inputs, double* outputs, int len);
-void linear(double* inputs, double* outputs, int len);
-void linear_deriv(double* inputs, double* outputs, int len);
-void leaky_relu(double* inputs, double* outputs, int len);
-void leaky_relu_deriv(double* inputs, double* outputs, int len);
-void softmax(double* inputs, double* outputs, int len);
-void softmax_deriv(double* inputs, double* outputs, int len);
+void sigmoid(float* inputs, float* outputs, int len);
+void sigmoid_deriv(float* inputs, float* outputs, int len);
+void linear(float* inputs, float* outputs, int len);
+void linear_deriv(float* inputs, float* outputs, int len);
+void leaky_relu(float* inputs, float* outputs, int len);
+void leaky_relu_deriv(float* inputs, float* outputs, int len);
+void softmax(float* inputs, float* outputs, int len);
+void softmax_deriv(float* inputs, float* outputs, int len);
 
 // Loss functions
-double categ_cross_entropy(double* predicted, double* actual, int n_classes);
-double mse(double* predicted, double* actual, int length);
+float categ_cross_entropy(float* predicted, float* actual, int n_classes);
+float mse(float* predicted, float* actual, int length);
 
 // Other helpful functions
-void normalize(double* values, int length, double max);
-void denormalize(double* values, int length, double max);
-double sum(double inputs[], double weights[], double bias, int len);
-int index_of_max(double* array, int len);
-double average(double* values, int length);
+void normalize(float* values, int length, float max);
+void denormalize(float* values, int length, float max);
+float sum(float inputs[], float weights[], float bias, int len);
+int index_of_max(float* array, int len);
+float average(float* values, int length);

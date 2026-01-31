@@ -67,9 +67,9 @@ idx1 read_labels_mnist(const char* path) {
     return dataset;
 }
 
-void get_mnist_image_norm(double* output, idx3* dataset, int index) {
+void get_mnist_image_norm(float* output, idx3* dataset, int index) {
     for (int i = 0; i < 784; i++) {
-        output[i] = (double)dataset->images[i + 784 * index] / 255.0;
+        output[i] = (float)dataset->images[i + 784 * index] / 255.0;
     }
 }
 

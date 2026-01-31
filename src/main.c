@@ -25,7 +25,7 @@ int main(int argc, char** argv) {
 
     // Default values
     int epochs = 6;
-    double lr = 0.01;
+    float lr = 0.01;
 
     if (argc == 3) {
         epochs = atoi(argv[1]);
@@ -33,11 +33,11 @@ int main(int argc, char** argv) {
     }
 
     printf("\n --- Training model ---\n");
-    double image_buffer[784];
-    double one_hot_buffer[10];
-    double min_val_loss = 999;
-    double* train_losses = malloc(sizeof(double) * x_train.n_images);
-    double* val_losses = malloc(sizeof(double) * x_test.n_images);
+    float image_buffer[784];
+    float one_hot_buffer[10];
+    float min_val_loss = 999;
+    float* train_losses = malloc(sizeof(float) * x_train.n_images);
+    float* val_losses = malloc(sizeof(float) * x_test.n_images);
 
     // 1 epoch = 1 run through all the train dataset
     for (int epoch = 0; epoch < epochs; epoch++) {
@@ -52,7 +52,7 @@ int main(int argc, char** argv) {
             forward(&model, image_buffer, 784);
             train(&model, image_buffer, one_hot_buffer, lr);
 
-            double* outputs = model.layers[model.n_layers - 1].outputs;
+            float* outputs = model.layers[model.n_layers - 1].outputs;
             train_losses[i] = categ_cross_entropy(outputs, one_hot_buffer, 10);
         }
 
@@ -63,7 +63,7 @@ int main(int argc, char** argv) {
             forward(&model, image_buffer, 784);
 
             // Loss computing
-            double* outputs = model.layers[model.n_layers - 1].outputs;
+            float* outputs = model.layers[model.n_layers - 1].outputs;
             one_hot(one_hot_buffer, y_test.labels[i], 10);
             val_losses[i] = categ_cross_entropy(outputs, one_hot_buffer, 10);
         }
@@ -71,8 +71,8 @@ int main(int argc, char** argv) {
         // Display average loss (average categorical cross entropy) for each epoch
         // We use the categorical cross entropy function because it's adapted
         // for multiclass classification with one hot encoded vectors
-        double avg_train_loss = average(train_losses, x_train.n_images);
-        double avg_val_loss = average(val_losses, x_test.n_images);
+        float avg_train_loss = average(train_losses, x_train.n_images);
+        float avg_val_loss = average(val_losses, x_test.n_images);
         printf("Epoch: %d - Loss: %.10f - Validation loss: %.10f\n", epoch+1, avg_train_loss, avg_val_loss);
 
         // Checkpointing: if the loss is lower than the previous loss we save the model
@@ -102,7 +102,7 @@ int main(int argc, char** argv) {
 
 
 
-    double* test_losses = malloc(sizeof(double) * x_test.n_images);
+    float* test_losses = malloc(sizeof(float) * x_test.n_images);
 
     printf("\n--- Results ---\n");
     for (int i = 0; i < x_test.n_images; i++) {
@@ -111,7 +111,7 @@ int main(int argc, char** argv) {
         forward(&model2, image_buffer, 784);
 
         // Loss computing
-        double* outputs = model2.layers[model2.n_layers - 1].outputs;
+        float* outputs = model2.layers[model2.n_layers - 1].outputs;
         one_hot(one_hot_buffer, y_test.labels[i], 10);
         test_losses[i] = categ_cross_entropy(outputs, one_hot_buffer, 10);
 
