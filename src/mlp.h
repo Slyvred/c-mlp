@@ -28,8 +28,8 @@ extern function softm;
 // layer = list of neurons with activation function
 typedef struct {
     layer_type type;
-    int n_inputs;           // = Input shape = Number of weights
-    int n_outputs;          // Number of neurons
+    int n_inputs;          // = Input shape = Number of weights
+    int n_outputs;         // Number of neurons
     float* weights;        // List of all the weights of all the neurons in the layer
     float* biases;         // Bias of each neuron in the layer
     float* raw_outputs;    // Outputs of all the neurons
