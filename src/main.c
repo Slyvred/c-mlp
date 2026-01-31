@@ -7,19 +7,19 @@
 int main(int argc, char** argv) {
     srand(42); // Pour la reproductibilité
 
-    idx3 x_train = read_images_mnist(getenv("IMAGES_TRAIN_PATH"));
-    idx1 y_train = read_labels_mnist(getenv("LABELS_TRAIN_PATH"));
+    IDX3_t x_train = read_images_mnist(getenv("IMAGES_TRAIN_PATH"));
+    IDX1_t y_train = read_labels_mnist(getenv("LABELS_TRAIN_PATH"));
 
-    idx3 x_test = read_images_mnist(getenv("IMAGES_TEST_PATH"));
-    idx1 y_test = read_labels_mnist(getenv("LABELS_TEST_PATH"));
+    IDX3_t x_test = read_images_mnist(getenv("IMAGES_TEST_PATH"));
+    IDX1_t y_test = read_labels_mnist(getenv("LABELS_TEST_PATH"));
 
-    layer layers[4] = {
+    Layer_t layers[4] = {
         dense(256, 784, &rel), // 784 is our input shape
         dense(128, 256, &rel),
         dense(64, 128, &rel),
         dense(10, 64, &softm), // 10 is our output shape (because we have 10 classes)
     };
-    MLP model = { layers, sizeof(layers) / sizeof(layer), 0};
+    Model_t model = { layers, sizeof(layers) / sizeof(Layer_t), 0};
 
     print_model(&model);
 
@@ -95,7 +95,7 @@ int main(int argc, char** argv) {
 
     // --- Inference example on already trained model ---
 
-    // MLP model2;
+    // Model_t model2;
     // load_model(&model2, getenv("MODEL_PATH"));
 
 
@@ -118,12 +118,12 @@ int main(int argc, char** argv) {
     //         printf("Output: %d | Actual: %d\n", predicted, y_test.labels[i]);
     //     }
     // }
-    // double average_loss = average(test_losses, x_test.n_images);
+    // float average_loss = average(test_losses, x_test.n_images);
     // printf("Average loss: %.10f\n", average_loss);
 
     // free(test_losses);
     // free_model(&model2);
-    free_mnist_images(&x_test);
-    free_mnist_labels(&y_test);
+    // free_mnist_images(&x_test);
+    // free_mnist_labels(&y_test);
     return 0;
 }
