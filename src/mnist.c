@@ -1,6 +1,5 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <arpa/inet.h> // Endian swapping
 #include "mnist.h"
 
 idx3 read_images_mnist(const char* path) {
@@ -16,10 +15,10 @@ idx3 read_images_mnist(const char* path) {
     fread(&dataset, sizeof(dataset) - sizeof(dataset.images), 1, file);
 
     // Swap the endians
-    dataset.magic_number = ntohl(dataset.magic_number);
-    dataset.n_images = ntohl(dataset.n_images);
-    dataset.n_rows = ntohl(dataset.n_rows);
-    dataset.n_cols = ntohl(dataset.n_cols);
+    dataset.magic_number = __builtin_bswap32(dataset.magic_number);
+    dataset.n_images = __builtin_bswap32(dataset.n_images);
+    dataset.n_rows = __builtin_bswap32(dataset.n_rows);
+    dataset.n_cols = __builtin_bswap32(dataset.n_cols);
 
     if (dataset.magic_number != 2051) {
         printf("Wrong magic number: got %d expected 2051\n", dataset.magic_number);
@@ -49,8 +48,8 @@ idx1 read_labels_mnist(const char* path) {
     fread(&dataset, sizeof(dataset) - sizeof(dataset.labels), 1, file);
 
     // Swap the endians
-    dataset.magic_number = ntohl(dataset.magic_number);
-    dataset.n_labels = ntohl(dataset.n_labels);
+    dataset.magic_number = __builtin_bswap32(dataset.magic_number);
+    dataset.n_labels = __builtin_bswap32(dataset.n_labels);
 
     if (dataset.magic_number != 2049) {
         printf("Wrong magic number: got %d expected 2049\n", dataset.magic_number);
