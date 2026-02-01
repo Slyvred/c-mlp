@@ -100,7 +100,10 @@ void convolve(Conv2DLayer_t* l, float* inputs) {
 }
 
 void maxpool(PoolingLayer_t* l, float* inputs) {
-
+    for (int i = 0; i < l->n_inputs; i++) {
+        float* output = l->outpouts + i * l->output_size.x * l->output_size.y;
+        // TODO
+    }
 }
 
 void forward(Model_t *m, float* inputs, int n_inputs) {
