@@ -36,8 +36,8 @@ Layer_t dense(int n_neurons, int n_inputs, Function_t *activation_function) {
     return l;
 }
 
-Layer_t conv_2d(int n_filters, int kernel_stride, Vec2_t kernel_size, Vec3_t input_shape, Function_t *activation_function) {
-    Layer_t l;
+Conv2DLayer_t conv_2d(int n_filters, int kernel_stride, Vec2_t kernel_size, Vec3_t input_shape, Function_t *activation_function) {
+    Conv2DLayer_t l;
     l.type = DENSE;
     l.n_filters = n_filters;
     l.stride = kernel_stride;
