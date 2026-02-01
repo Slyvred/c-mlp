@@ -42,26 +42,28 @@ typedef struct {
 
 typedef struct {
     LayerType_t type;
-    float* filters;        // Contains our convolution filters
-    float* outpouts;       // Contains our feature maps
-    int stride;            // Stride of filter (= step of the filter)
-    int n_filters;         // Number of filters of the layer
-    Vec2_t kernel_size;    // Size of the filter (width, height)
-    Vec3_t input_shape;    // Size of the input image (width, height, depth)
+    float* filters;         // Contains our convolution filters
+    float* outpouts;        // Contains our feature maps
+    int stride;             // Stride of filter (= step of the filter)
+    int n_filters;          // Number of filters of the layer
+    Vec2_t kernel_size;     // Size of the filter (width, height)
+    Vec2_t input_size;      // Size of the input image (width, height, depth)
+    Vec2_t output_size;     // Dimensions of the resulting feature maps
     Function_t* activation_function;
 }Conv2DLayer_t;
 
 typedef struct {
     LayerType_t type;
-    float* outpouts;       // Contains our pooled feature maps
-    Vec2_t kernel_size;    // Size of the pooling filter (width, height)
-    Vec3_t input_shape;    // Size of the input feature map (width, height, depth)
+    int n_inputs;           // Number of feature maps we'll receive
+    float* outpouts;        // Contains our pooled feature maps
+    Vec2_t kernel_size;     // Size of the pooling filter (width, height)
+    Vec2_t output_size;     // Dimensions of the resulting feature maps
+    Vec2_t input_size;      // Size of the input feature map (width, height, depth)
 }PoolingLayer_t;
 
-
 typedef struct {
-    Layer_t* layers;      // List of connected layers
-    int n_layers;         // Total number of layers in the network
+    Layer_t* layers;        // List of connected layers
+    int n_layers;           // Total number of layers in the network
     // A created model is in stack (cf main.c) while a loaded one is entierly in heap (I mean the layers here).
     // We need to keep track of that in order to free the model's layers properly
     int is_in_heap;
@@ -69,7 +71,9 @@ typedef struct {
 
 float ranged_rand(float min, float max);
 Layer_t dense(int n_neurons, int n_inputs, Function_t *activation_function);
-Conv2DLayer_t conv_2d(int n_filters, int kernel_stride, Vec2_t kernel_size, Vec3_t input_shape, Function_t *activation_function);
+Conv2DLayer_t conv_2d(int n_filters, Vec2_t kernel_size, Vec2_t input_size, Function_t *activation_function);
+PoolingLayer_t max_pool_2d(int n_inputs, Vec2_t input_size, Vec2_t kernel_size);
+void convolve(Conv2DLayer_t* l, float* inputs);
 void forward(Model_t *m, float* inputs, int n_inputs);
 void train(Model_t *m, float* raw_inputs, float* target, float lr);
 int get_num_parameters(Model_t* mlp);

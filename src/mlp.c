@@ -36,18 +36,71 @@ Layer_t dense(int n_neurons, int n_inputs, Function_t *activation_function) {
     return l;
 }
 
-Conv2DLayer_t conv_2d(int n_filters, int kernel_stride, Vec2_t kernel_size, Vec3_t input_shape, Function_t *activation_function) {
+Conv2DLayer_t conv_2d(int n_filters, Vec2_t kernel_size, Vec2_t input_size, Function_t *activation_function) {
     Conv2DLayer_t l;
-    l.type = DENSE;
+    l.type = CONV2D;
     l.n_filters = n_filters;
-    l.stride = kernel_stride;
+    l.stride = 1;
     l.kernel_size = kernel_size;
-    l.input_shape = input_shape;
+    l.input_size = input_size;
     l.activation_function = activation_function;
+    l.filters = malloc(n_filters * kernel_size.x * kernel_size.y * sizeof(float));
 
-    l.filters = malloc(n_filters * kernel_size.x * kernel_size.y);
+    for (int i = 0; i < n_filters * kernel_size.x * kernel_size.y; i++) {
+        l.filters[i] = ranged_rand(-1, 1);
+    }
+
+    // (W - K + 2P)/S + 1
+    // W = Input size
+    // K = Filter size
+    // S = Stride
+    // P = Padding = 0
+    l.output_size.x = (input_size.x - kernel_size.x) / l.stride + 1;
+    l.output_size.y = (input_size.y - kernel_size.y) / l.stride + 1;
+
+    l.outpouts = malloc(n_filters * l.output_size.x * l.output_size.y * sizeof(float));
+    return l;
+}
+
+PoolingLayer_t max_pool_2d(int n_inputs, Vec2_t input_size, Vec2_t kernel_size) {
+    PoolingLayer_t l;
+    l.type = POOLING;
+    l.n_inputs = n_inputs;
+    l.input_size = input_size;
+    l.kernel_size = kernel_size;
+    l.output_size.x = input_size.x / kernel_size.x;
+    l.output_size.y = input_size.y / kernel_size.y;
+    l.outpouts = malloc(n_inputs * l.output_size.x * l.output_size.y * sizeof(float));
 
     return l;
+}
+
+void convolve(Conv2DLayer_t* l, float* inputs) {
+    // For each filter
+    for (int i = 0; i < l->n_filters; i++) {
+        // Get current kernel offset
+        float* kernel = l->filters + i * l->kernel_size.x * l->kernel_size.y;
+        // Get current output offset
+        float* output = l->outpouts + i * l->output_size.x * l->output_size.y;
+        for (int y = 0; y < l->output_size.y; y++) {
+            for (int x = 0; x < l->output_size.x; x++) {
+                float sum = 0;
+                // Iterate in our filter
+                for (int ky = 0; ky < l->kernel_size.y; ky++) {
+                    for (int kx = 0; kx < l->kernel_size.x; kx++) {
+                        int input_idx = (y + ky) * l->input_size.x + (x + kx);
+                        int kernel_idx = ky * l->kernel_size.x + kx;
+                        sum += inputs[input_idx] * kernel[kernel_idx];
+                    }
+                }
+                output[y * l->output_size.x + x] = sum;
+            }
+        }
+    }
+}
+
+void maxpool(PoolingLayer_t* l, float* inputs) {
+
 }
 
 void forward(Model_t *m, float* inputs, int n_inputs) {
