@@ -8,12 +8,12 @@ MLP model;
 
 typedef struct {
     int label;
-    double confidence;
+    float confidence;
 }output;
 
-output predict(double* image) {
+output predict(float* image) {
     forward(&model, image, 784);
-    double* outputs = model.layers[model.n_layers - 1].outputs;
+    float* outputs = model.layers[model.n_layers - 1].outputs;
     int class = index_of_max(outputs, 10);
     output predicted = {class, outputs[class]};
     return predicted;
@@ -38,11 +38,11 @@ static void fn(struct mg_connection *c, int ev, void *ev_data) {
 
         if (wm->data.len == 784) {
             unsigned char* raw_data = (unsigned char*) wm->data.buf;
-            double input_vector[784];
+            float input_vector[784];
 
             // Normalize vector here since it allows us to save bandwidth
             for (int i = 0; i < 784; i++) {
-                input_vector[i] = (double)raw_data[i] / 255.0;
+                input_vector[i] = (float)raw_data[i] / 255.0;
             }
 
             output prediction = predict(input_vector);
