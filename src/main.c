@@ -13,11 +13,9 @@ int main(int argc, char** argv) {
     idx3 x_test = read_images_mnist(getenv("IMAGES_TEST_PATH"));
     idx1 y_test = read_labels_mnist(getenv("LABELS_TEST_PATH"));
 
-    layer layers[4] = {
-        dense(256, 784, &rel), // 784 is our input shape
-        dense(128, 256, &rel),
-        dense(64, 128, &rel),
-        dense(10, 64, &softm), // 10 is our output shape (because we have 10 classes)
+    layer layers[2] = {
+        dense(128, 784, &rel), // 784 is our input shape
+        dense(10, 128, &softm), // 10 is our output shape (because we have 10 classes)
     };
     MLP model = { layers, sizeof(layers) / sizeof(layer) };
 
