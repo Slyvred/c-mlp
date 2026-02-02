@@ -3,49 +3,49 @@
 
 #define LEAKY_RELU_SLOPE 0.01
 
-void sigmoid(double* inputs, double* outputs, int len) {
+void sigmoid(float* inputs, float* outputs, int len) {
     for (int i = 0; i < len; i++) {
         outputs[i] = 1.0 / (1.0 + exp(-inputs[i]));
     }
 }
 
-void sigmoid_deriv(double* inputs, double* outputs, int len) {
+void sigmoid_deriv(float* inputs, float* outputs, int len) {
     for (int i = 0; i < len; i++) {
         outputs[i] = inputs[i] * (1.0 - inputs[i]);
     }
 }
 
-void linear(double* inputs, double* outputs, int len) {
+void linear(float* inputs, float* outputs, int len) {
     for (int i = 0; i < len; i++) {
         outputs[i] = inputs[i];
     }
 }
 
-void linear_deriv(double* inputs, double* outputs, int len) {
+void linear_deriv(float* inputs, float* outputs, int len) {
     for (int i = 0; i < len; i++) {
         outputs[i] = 1.0;
     }
 }
 
-void leaky_relu(double* inputs, double* outputs, int len) {
+void leaky_relu(float* inputs, float* outputs, int len) {
     for (int i = 0; i < len; i++) {
         outputs[i] = inputs[i] >= 0 ? inputs[i] : LEAKY_RELU_SLOPE * inputs[i];
     }
 }
 
-void leaky_relu_deriv(double* inputs, double* outputs, int len) {
+void leaky_relu_deriv(float* inputs, float* outputs, int len) {
     for (int i = 0; i < len; i++) {
         outputs[i] = inputs[i] >= 0 ? 1 : LEAKY_RELU_SLOPE;
     }
 }
 
-void softmax(double* inputs, double* outputs, int len) {
-    double max_val = inputs[0];
+void softmax(float* inputs, float* outputs, int len) {
+    float max_val = inputs[0];
     for (int i = 1; i < len; i++) {
         if (inputs[i] > max_val) max_val = inputs[i];
     }
 
-    double denom = 0;
+    float denom = 0;
     for (int i = 0; i < len; i++) {
         outputs[i] = exp(inputs[i] - max_val);
         denom += outputs[i];
@@ -68,14 +68,14 @@ void softmax(double* inputs, double* outputs, int len) {
 // So for softmax, we must set derivative = 1 to avoid applying any extra factor.
 // This function therefore acts as a neutral "pass-through" derivative.
 // It exists only to keep the same training code path for both regression and classification.
-void softmax_deriv(double* inputs, double* outputs, int len) {
+void softmax_deriv(float* inputs, float* outputs, int len) {
     for (int i = 0; i < len; i++) {
         outputs[i] = 1;
     }
 }
 
-double sum(double inputs[], double weights[], double bias, int len) {
-    double sum = 0;
+float sum(float inputs[], float weights[], float bias, int len) {
+    float sum = 0;
     for (int i = 0; i < len; i++) {
         sum += inputs[i] * weights[i];
     }
@@ -83,19 +83,19 @@ double sum(double inputs[], double weights[], double bias, int len) {
     return sum;
 }
 
-void normalize(double* values, int length, double max) {
+void normalize(float* values, int length, float max) {
     for (int i = 0; i < length; i++) {
         values[i] /= max;
     }
 }
 
-void denormalize(double* values, int length, double max) {
+void denormalize(float* values, int length, float max) {
     for (int i = 0; i < length; i++) {
         values[i] *= max;
     }
 }
 
-int index_of_max(double* array, int len) {
+int index_of_max(float* array, int len) {
     int max = 0;
     for (int i = 0; i < len; i++) {
         if (array[i] > array[max]) max = i;
@@ -103,22 +103,22 @@ int index_of_max(double* array, int len) {
     return max;
 }
 
-double mse(double* predicted, double* actual, int length) {
-    double mse = 0;
+float mse(float* predicted, float* actual, int length) {
+    float mse = 0;
     for (int i = 0; i < length; i++) {
         mse += (actual[i] - predicted[i])*(actual[i] - predicted[i]);
     }
-    mse /= (double)length;
+    mse /= (float)length;
     return mse;
 }
 
-double categ_cross_entropy(double* predicted, double* actual, int n_classes) {
+float categ_cross_entropy(float* predicted, float* actual, int n_classes) {
     int correct_class_idx = index_of_max(actual, n_classes);
     return -log(predicted[correct_class_idx]);
 }
 
-double average(double* values, int length) {
-    double sum = 0;
+float average(float* values, int length) {
+    float sum = 0;
     for (int i = 0; i < length ;i++) {
         sum += values[i];
     }
