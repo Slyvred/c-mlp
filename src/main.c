@@ -21,46 +21,6 @@ int main(int argc, char** argv) {
     Conv2DLayer_t conv_layer = conv_2d(4, kernel_size, input_size, &rel);
     PoolingLayer_t pooling_layer = max_pool_2d(4, conv_layer.output_size, maxpool_kernel_size);
 
-    float img_buffer[784];
-    get_mnist_image_norm(img_buffer, &x_train, 64);
-    convolve(&conv_layer, img_buffer);
-    maxpool(&pooling_layer, conv_layer.outpouts);
-
-    printf("Raw image\n");
-    for (int y = 0; y < x_train.n_cols; y++) {
-        for (int x = 0; x < x_train.n_rows; x++) {
-            int idx = x * x_train.n_cols + y;
-            printf("%.2f ", img_buffer[idx]);
-        }
-        printf("\n");
-    }
-    printf("\n");
-
-    printf("Convolve\n");
-    for (int z = 0; z < conv_layer.n_filters; z++) {
-        float* output = conv_layer.outpouts + z * conv_layer.output_size.x * conv_layer.output_size.y;
-        for (int y = 0; y < conv_layer.output_size.y; y++) {
-            for (int x = 0; x < conv_layer.output_size.x; x++) {
-                int idx = x * conv_layer.output_size.y + y;
-                printf("%.1f ", output[idx]);
-            }
-            printf("\n");
-        }
-        printf("\n");
-    }
-
-    printf("Pooling\n");
-    for (int z = 0; z < pooling_layer.n_inputs; z++) {
-        float* output = pooling_layer.outpouts + z * pooling_layer.output_size.x * pooling_layer.output_size.y;
-        for (int y = 0; y < pooling_layer.output_size.y; y++) {
-            for (int x = 0; x < pooling_layer.output_size.x; x++) {
-                int idx = x * pooling_layer.output_size.y + y;
-                printf("%.2f ", output[idx]);
-            }
-            printf("\n");
-        }
-        printf("\n");
-    }
 
     int input_shape = pooling_layer.n_inputs * pooling_layer.output_size.x * pooling_layer.output_size.y;
     Layer_t layers[3] = {
@@ -69,10 +29,22 @@ int main(int argc, char** argv) {
         dense(10, 128, &softm), // 10 is our output shape (because we have 10 classes)
     };
     Model_t model = { layers, sizeof(layers) / sizeof(Layer_t), 0};
-    print_model(&model);
-    forward(&model, pooling_layer.outpouts, pooling_layer.n_inputs);
 
-    int predicted = index_of_max(model.layers[model.n_layers - 1].outputs, 10);
+    CNN_t cnn = {
+        1,
+        1,
+        0,
+        &conv_layer,
+        &pooling_layer,
+        &model,
+    };
+
+    float img_buffer[784];
+    get_mnist_image_norm(img_buffer, &x_train, 64);
+    forward_cnn(&cnn, img_buffer, input_size);
+
+    float* outputs = cnn.fully_connected->layers[cnn.fully_connected->n_layers - 1].outputs;
+    int predicted = index_of_max(outputs, 10);
     printf("Output: %d | Actual: %d\n", predicted, y_train.labels[64]);
 
 
