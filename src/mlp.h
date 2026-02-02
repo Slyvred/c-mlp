@@ -69,6 +69,15 @@ typedef struct {
     int is_in_heap;
 } Model_t;
 
+typedef struct {
+    int n_conv_layer;
+    int n_pooling_layers;
+    int is_in_heap;
+    Conv2DLayer_t* conv_layers;
+    PoolingLayer_t* pooling_layers;
+    Model_t* fully_connected_layer;
+}CNN_t;
+
 float ranged_rand(float min, float max);
 Layer_t dense(int n_neurons, int n_inputs, Function_t *activation_function);
 Conv2DLayer_t conv_2d(int n_filters, Vec2_t kernel_size, Vec2_t input_size, Function_t *activation_function);

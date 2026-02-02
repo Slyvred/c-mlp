@@ -1,12 +1,13 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
 #include "mlp.h"
 #include "mnist.h"
 #include "math_functions.h"
 
 int main(int argc, char** argv) {
-    srand(42); // Pour la reproductibilité
+    srand(time(NULL)); // Pour la reproductibilité
 
     IDX3_t x_train = read_images_mnist(getenv("IMAGES_TRAIN_PATH"));
     IDX1_t y_train = read_labels_mnist(getenv("LABELS_TRAIN_PATH"));
@@ -68,12 +69,12 @@ int main(int argc, char** argv) {
         dense(10, 128, &softm), // 10 is our output shape (because we have 10 classes)
     };
     Model_t model = { layers, sizeof(layers) / sizeof(Layer_t), 0};
+    print_model(&model);
     forward(&model, pooling_layer.outpouts, pooling_layer.n_inputs);
 
     int predicted = index_of_max(model.layers[model.n_layers - 1].outputs, 10);
     printf("Output: %d | Actual: %d\n", predicted, y_train.labels[64]);
 
-    // print_model(&model);
 
     // // Default values
     // int epochs = 6;
