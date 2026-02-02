@@ -120,6 +120,19 @@ void maxpool(PoolingLayer_t* l, float* inputs) {
     }
 }
 
+void forward_cnn(CNN_t *m, float* inputs, Vec2_t input_size) {
+    // Alternate convolve and maxpool
+    for (int i = 0; i < m->n_conv_layer; i++) {
+        Conv2DLayer_t* l = &m->conv_layers[i];
+        PoolingLayer_t* p = &m->pooling_layers[i];
+        convolve(l, inputs);
+        maxpool(p, l->outpouts);
+    }
+    // Feed outputs to FC Layers
+    PoolingLayer_t* p = &m->pooling_layers[m->n_pooling_layers - 1];
+    forward(m->fully_connected, p->outpouts, p->n_inputs);
+}
+
 void forward(Model_t *m, float* inputs, int n_inputs) {
     for (int i = 0; i < m->n_layers; i++) {
         Layer_t* l = &m->layers[i];

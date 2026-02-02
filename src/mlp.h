@@ -75,7 +75,7 @@ typedef struct {
     int is_in_heap;
     Conv2DLayer_t* conv_layers;
     PoolingLayer_t* pooling_layers;
-    Model_t* fully_connected_layer;
+    Model_t* fully_connected;
 }CNN_t;
 
 float ranged_rand(float min, float max);
@@ -85,6 +85,7 @@ PoolingLayer_t max_pool_2d(int n_inputs, Vec2_t input_size, Vec2_t kernel_size);
 void convolve(Conv2DLayer_t* l, float* inputs);
 void maxpool(PoolingLayer_t* l, float* inputs);
 void forward(Model_t *m, float* inputs, int n_inputs);
+void forward_cnn(CNN_t *m, float* inputs, Vec2_t input_size);
 void train(Model_t *m, float* raw_inputs, float* target, float lr);
 int get_num_parameters(Model_t* mlp);
 void print_model(Model_t* m);
