@@ -95,6 +95,7 @@ void convolve(Conv2DLayer_t* l, float* inputs) {
                 output[y * l->output_size.x + x] = sum;
             }
         }
+        // TODO Activation fn
     }
 }
 
@@ -122,10 +123,16 @@ void maxpool(PoolingLayer_t* l, float* inputs) {
 
 void forward_cnn(CNN_t *m, float* inputs, Vec2_t input_size) {
     // Alternate convolve and maxpool
-    for (int i = 0; i < m->n_conv_layer; i++) {
+    for (int i = 0; i < m->n_conv_layers; i++) {
         Conv2DLayer_t* l = &m->conv_layers[i];
         PoolingLayer_t* p = &m->pooling_layers[i];
-        convolve(l, inputs);
+
+        float* layer_inputs;
+        if (i == 0) layer_inputs = inputs;
+        else layer_inputs = m->conv_layers[i - 1].outpouts;
+
+
+        convolve(l, layer_inputs);
         maxpool(p, l->outpouts);
     }
     // Feed outputs to FC Layers
@@ -155,6 +162,85 @@ void forward(Model_t *m, float* inputs, int n_inputs) {
         }
         l->activation_function->f(l->raw_outputs, l->outputs, l->n_outputs);
     }
+}
+
+void backward_cnn(CNN_t *m, float* inputs, float* target, float lr, Vec2_t input_size) {
+    // Calculate output layer error
+    Model_t* fc = m->fully_connected;
+    Layer_t* l = &fc->layers[fc->n_layers - 1];
+    l->activation_function->df(l->raw_outputs, l->derivatives, l->n_outputs);
+
+    for (int i = 0; i < l->n_outputs; i++) {
+        l->deltas[i] = (l->outputs[i] - target[i]) * l->derivatives[i];
+    }
+
+    // Calculate layer error from last hidden layer to input
+    for (int i = fc->n_layers - 2; i >= 0; i--) {
+        Layer_t* curr_layer = &fc->layers[i];
+        Layer_t* next_layer = &fc->layers[i + 1];
+
+        curr_layer->activation_function->df(curr_layer->raw_outputs, curr_layer->derivatives, curr_layer->n_outputs);
+
+        #pragma omp parallel for
+        for (int j = 0; j < curr_layer->n_outputs; j++) {
+            float error = 0;
+            // Sum deltas of next layer weighted by next neuron weights
+            for (int k = 0; k < next_layer->n_outputs; k++) {
+                // next_layer->weights[j] is the weight connecting the current neuron with the next neuron k
+                int weight_index = k * next_layer->n_inputs + j;
+                error += next_layer->deltas[k] * next_layer->weights[weight_index];
+            }
+            curr_layer->deltas[j] = error * curr_layer->derivatives[j];
+        }
+    }
+
+    // Continue calculating error from last conv layer to first one
+    for (int i = m->n_conv_layers - 1; i >= 0; i--) {
+        Conv2DLayer_t* curr_layer = &m->conv_layers[i];
+        // If it's our last convolution layer, the error comes from the first fc layer
+        if (i == m->n_conv_layers - 1) {
+            Layer_t* next_layer = &fc->layers[fc->n_layers - 1];
+            float* errors = next_layer->deltas;
+
+            for (int f = 0; f < curr_layer->n_filters; f++) {
+                // Get current kernel offset
+                float* kernel = curr_layer->filters + f * curr_layer->kernel_size.x * curr_layer->kernel_size.y;
+                float error = 0;
+                // Iterate in our filter
+                for (int ky = 0; ky < curr_layer->kernel_size.y; ky++) {
+                    for (int kx = 0; kx < curr_layer->kernel_size.x; kx++) {
+                        for (int k = 0; k < next_layer->n_outputs; k++) {
+                            // next_layer->weights[j] is the weight connecting the current neuron with the next neuron k
+                            int weight_index = k * next_layer->n_inputs + j;
+                            error += next_layer->deltas[k] * next_layer->weights[weight_index];
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    // Update weights for each layer
+    // for (int i = 0; i < m->n_layers; i++) {
+    //     Layer_t* l = &m->layers[i];
+    //     float* layer_inputs;
+
+    //     // For input layer, input is the actual input
+    //     if (i == 0) layer_inputs = raw_inputs;
+    //     else layer_inputs = m->layers[i - 1].outputs;
+
+    //     // For each neuron
+    //     #pragma omp parallel for
+    //     for (int j = 0; j < l->n_outputs; j++) {
+    //         float delta = l->deltas[j];
+    //         // For each weight
+    //         for (int k = 0; k < l->n_inputs; k++) {
+    //             int index = j * l->n_inputs + k;
+    //             l->weights[index] -= lr * delta * layer_inputs[k];
+    //         }
+    //         l->biases[j] -= lr * l->deltas[j];
+    //     }
+    // }
 }
 
 // Entraînement (Backpropagation)
