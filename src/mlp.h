@@ -12,7 +12,7 @@ typedef enum {
     DENSE,
     CONV2D,
     POOLING,
-    FLATTEN
+    // FLATTEN // All layers are already kinda flat since we have a 1d array
 }LayerType_t;
 
 typedef struct {
@@ -74,6 +74,7 @@ Layer_t dense(int n_neurons, int n_inputs, Function_t *activation_function);
 Conv2DLayer_t conv_2d(int n_filters, Vec2_t kernel_size, Vec2_t input_size, Function_t *activation_function);
 PoolingLayer_t max_pool_2d(int n_inputs, Vec2_t input_size, Vec2_t kernel_size);
 void convolve(Conv2DLayer_t* l, float* inputs);
+void maxpool(PoolingLayer_t* l, float* inputs);
 void forward(Model_t *m, float* inputs, int n_inputs);
 void train(Model_t *m, float* raw_inputs, float* target, float lr);
 int get_num_parameters(Model_t* mlp);

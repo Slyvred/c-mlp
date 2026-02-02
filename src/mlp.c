@@ -101,16 +101,16 @@ void convolve(Conv2DLayer_t* l, float* inputs) {
 void maxpool(PoolingLayer_t* l, float* inputs) {
     for (int i = 0; i < l->n_inputs; i++) {
         float* output = l->outpouts + i * l->output_size.x * l->output_size.y;
-        // TODO
+        float* input = inputs + i * l->input_size.x * l->input_size.y;
         for (int y = 0; y < l->output_size.y; y++) {
             for (int x = 0; x < l->output_size.x; x++) {
-                float max = 9999999;
+                float max = -999;
                 // Iterate in our "filter"
                 for (int ky = 0; ky < l->kernel_size.y; ky++) {
                     for (int kx = 0; kx < l->kernel_size.x; kx++) {
                         int input_idx = (y + ky) * l->input_size.x + (x + kx);
-                        if (inputs[input_idx] > max) {
-                            max = inputs[input_idx];
+                        if (input[input_idx] > max) {
+                            max = input[input_idx];
                         }
                     }
                 }
