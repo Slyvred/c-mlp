@@ -9,6 +9,12 @@ typedef enum {
 }ActivationName;
 
 template <typename T>
+struct LeakyRelu;
+
+template <typename T>
+struct Softmax;
+
+template <typename T>
 class Layer {
 public:
     virtual void forward(const std::vector<T>& in) = 0;
@@ -19,7 +25,7 @@ public:
 
 
 template <typename T, typename Activation>
-class DenseLayer : public Layer<T> {
+class DenseLayer {
 private:
     std::vector<T> deltas;
     std::vector<T> derivatives;
@@ -31,10 +37,10 @@ public:
     std::vector<T> weights;
     std::vector<T> biases;
 public:
-    DenseLayer(int n_inputs, int n_neurons);
+    DenseLayer<T, Activation>(int n_inputs, int n_neurons);
     void forward(const std::vector<T> &inputs);
     void backward(const std::vector<T> &grad);
-    virtual const std::vector<T>& output() const = 0;
+    const std::vector<T>& output() const;
     std::vector<T>& get_outputs();
 };
 

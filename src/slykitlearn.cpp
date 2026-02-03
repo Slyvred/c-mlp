@@ -69,7 +69,7 @@ DenseLayer<T, Activation>::DenseLayer(int n_inputs, int n_neurons) {
 }
 
 template<typename T, typename Activation>
-void DenseLayer<T, Activation>::forward(std::vector<T> &inputs) {
+void DenseLayer<T, Activation>::forward(const std::vector<T> &inputs) {
     // For each neuron in the layer
     for (int i = 0; i < this->n_neurons; i++) {
         std::vector<T> &neuron_weights = this->weights + i * this->n_inputs;
