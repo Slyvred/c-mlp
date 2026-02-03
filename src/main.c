@@ -7,6 +7,7 @@
 #include "math_functions.h"
 
 int main(int argc, char** argv) {
+
     srand(time(NULL)); // Pour la reproductibilité
 
     IDX3_t x_train = read_images_mnist(getenv("IMAGES_TRAIN_PATH"));
