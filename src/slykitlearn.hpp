@@ -8,49 +8,44 @@ typedef enum {
     LINEAR
 }ActivationName;
 
-template <typename T>
 struct LeakyRelu;
-
-template <typename T>
 struct Softmax;
 
-template <typename T>
 class Layer {
 public:
-    virtual void forward(const std::vector<T>& in) = 0;
-    virtual void backward(const std::vector<T>& grad) = 0;
-    virtual const std::vector<T>& output() const = 0;
+    virtual void forward(const std::vector<float>& in) = 0;
+    virtual void backward(const std::vector<float>& grad) = 0;
+    virtual const std::vector<float>& get_outputs() const = 0;
     virtual ~Layer() = default;
 };
 
 
-template <typename T, typename Activation>
-class DenseLayer {
+template <typename Activation>
+class DenseLayer : public Layer {
 private:
-    std::vector<T> deltas;
-    std::vector<T> derivatives;
-    std::vector<T> raw_outputs;
+    std::vector<float> deltas;
+    std::vector<float> derivatives;
+    std::vector<float> raw_outputs;
 public:
     int n_inputs;
     int n_neurons;
-    std::vector<T> outputs;
-    std::vector<T> weights;
-    std::vector<T> biases;
+    std::vector<float> outputs;
+    std::vector<float> weights;
+    std::vector<float> biases;
 public:
-    DenseLayer<T, Activation>(int n_inputs, int n_neurons);
-    void forward(const std::vector<T> &inputs);
-    void backward(const std::vector<T> &grad);
-    const std::vector<T>& output() const;
-    std::vector<T>& get_outputs();
+    DenseLayer<Activation>(int n_inputs, int n_neurons);
+    void forward(const std::vector<float> &inputs);
+    void backward(const std::vector<float> &grad);
+    const std::vector<float>& get_outputs() const;
 };
 
 
-template <typename T, typename... Layers> class Model {
+class Model {
 public:
-    std::tuple<Layers...> layers;
-    Model(std::tuple<Layers...> &layers);
-    void forward(std::vector<T> &inputs);
-    void backward(std::vector<T> &inputs);
-    void train(std::vector<T> &inputs, std::vector<T> &target, T lr);
+    std::vector<Layer> layers;
+    Model(std::vector<Layer> &layers);
+    void forward(std::vector<float> &inputs);
+    void backward(std::vector<float> &inputs);
+    void train(std::vector<float> &inputs, std::vector<float> &target, float lr);
     ~Model();
 };
