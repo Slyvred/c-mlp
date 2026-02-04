@@ -82,7 +82,7 @@ IDX1::IDX1(const char* path) {
 }
 
 uint8_t IDX1::get_label(int index) {
-    if (index > this->n_labels - 1) {
+    if (static_cast<uint32_t>(index) > this->n_labels - 1) {
         throw std::out_of_range("Index out of range");
     }
 

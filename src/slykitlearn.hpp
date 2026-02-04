@@ -2,20 +2,21 @@
 #include <cmath>
 #include <vector>
 #include <random>
+#include <memory>
 #include "logger.hpp"
 
 extern Logger logger;
 
 struct LeakyRelu {
     static void f(const std::vector<float> &input, std::vector<float> &output) {
-        for (int i = 0; i < input.size(); i++) {
+        for (size_t i = 0; i < input.size(); i++) {
             output[i] = input[i] >= 0 ? input[i] : 0.01 * input[i];
         }
         logger.log(Logger::LogLevel::DEBUG, "Calculated LeakyRelu");
     }
 
     static void df(const std::vector<float> &input, std::vector<float> &output) {
-        for (int i = 0; i < input.size(); i++) {
+        for (size_t i = 0; i < input.size(); i++) {
             output[i] = input[i] >= 0 ? 1 : 0.01;
         }
     }
@@ -25,26 +26,26 @@ struct LeakyRelu {
 struct Softmax {
     static void f(const std::vector<float> &input, std::vector<float> &output) {
         float max_val = input[0];
-        for (int i = 1; i < input.size(); i++) {
+        for (size_t i = 1; i < input.size(); i++) {
             if (input[i] > max_val) max_val = input[i];
         }
 
         float denom = 0;
-        for (int i = 0; i < input.size(); i++) {
+        for (size_t i = 0; i < input.size(); i++) {
             output[i] = exp(input[i] - max_val);
             denom += output[i];
         }
 
         if (denom < 1e-20) denom = 1e-20;
 
-        for (int i = 0; i < input.size(); i++) {
+        for (size_t i = 0; i < input.size(); i++) {
             output[i] /= denom;
         }
         logger.log(Logger::LogLevel::DEBUG, "Calculated Softmax");
     }
 
     static void df(const std::vector<float> &input, std::vector<float> &output) {
-        for (int i = 0; i < input.size(); i++) {
+        for (size_t i = 0; i < input.size(); i++) {
             output[i] = 1;
         }
     }
@@ -80,7 +81,7 @@ private:
 public:
     ~DenseLayer() = default;
 
-    DenseLayer<Activation>(int n_neurons, int n_inputs) {
+    DenseLayer(int n_neurons, int n_inputs) {
         this->n_inputs = n_inputs;
         this->n_neurons = n_neurons;
         this->weights.resize(n_inputs * n_neurons);
