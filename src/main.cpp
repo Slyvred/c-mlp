@@ -8,15 +8,15 @@
 
 Logger logger = Logger(Logger::LogLevel::INFO, "%m/%d/%y %H:%M:%S");
 
-IDX3 x_train("/home/slyvred/Documents/MNIST_ORG/train-images.idx3-ubyte");
-IDX1 y_train("/home/slyvred/Documents/MNIST_ORG/train-labels.idx1-ubyte");
+IDX3 x_train("/Users/remi/Documents/datasets/MNIST/train-images-idx3-ubyte");
+IDX1 y_train("/Users/remi/Documents/datasets/MNIST/train-labels-idx1-ubyte");
 
-IDX3 x_test("/home/slyvred/Documents/MNIST_ORG/t10k-images.idx3-ubyte");
-IDX1 y_test("/home/slyvred/Documents/MNIST_ORG/t10k-labels.idx1-ubyte");
+IDX3 x_test("/Users/remi/Documents/datasets/MNIST/t10k-images-idx3-ubyte");
+IDX1 y_test("/Users/remi/Documents/datasets/MNIST/t10k-labels-idx1-ubyte");
 
 
 int index_of_max(const std::vector<float> &array) {
-    int max = -999;
+    int max = 0;
     for (size_t i = 0; i < array.size(); i++) {
         if (array[i] > array[max]) max = i;
     }

@@ -24,7 +24,11 @@ std::vector<float> Model::forward(const std::vector<float> &input) {
 
 void Model::train(std::vector<float> &target, float lr) {
     const auto& output = this->get_output();
-    std::vector<float> grad(output.size());
+    static std::vector<float> grad;
+
+    if(grad.size() != output.size()) {
+        grad.resize(output.size());
+    }
 
     for (int i = 0; i < output.size(); i++) {
         grad[i] = output[i] - target[i];
