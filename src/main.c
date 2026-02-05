@@ -7,17 +7,17 @@
 int main(int argc, char** argv) {
     srand(42); // Pour la reproductibilité
 
-    idx3 x_train = read_images_mnist(getenv("IMAGES_TRAIN_PATH"));
-    idx1 y_train = read_labels_mnist(getenv("LABELS_TRAIN_PATH"));
+    IDX3_t x_train = read_images_mnist(getenv("IMAGES_TRAIN_PATH"));
+    IDX1_t y_train = read_labels_mnist(getenv("LABELS_TRAIN_PATH"));
 
-    idx3 x_test = read_images_mnist(getenv("IMAGES_TEST_PATH"));
-    idx1 y_test = read_labels_mnist(getenv("LABELS_TEST_PATH"));
+    IDX3_t x_test = read_images_mnist(getenv("IMAGES_TEST_PATH"));
+    IDX1_t y_test = read_labels_mnist(getenv("LABELS_TEST_PATH"));
 
-    layer layers[2] = {
+    Layer_t layers[2] = {
         dense(128, 784, &rel), // 784 is our input shape
         dense(10, 128, &softm), // 10 is our output shape (because we have 10 classes)
     };
-    MLP model = { layers, sizeof(layers) / sizeof(layer) };
+    Model_t model = { layers, sizeof(layers) / sizeof(Layer_t), 0 };
 
     print_model(&model);
 
@@ -90,15 +90,11 @@ int main(int argc, char** argv) {
     free_model(&model);
     free_mnist_images(&x_train);
     free_mnist_labels(&y_train);
-    free_mnist_images(&x_test);
-    free_mnist_labels(&y_test);
 
     // --- Inference example on already trained model ---
 
-    /* MLP model2;
+    Model_t model2;
     load_model(&model2, getenv("MODEL_PATH"));
-
-
 
     float* test_losses = malloc(sizeof(float) * x_test.n_images);
 
@@ -123,6 +119,6 @@ int main(int argc, char** argv) {
     free(test_losses);
     free_model(&model2);
     free_mnist_images(&x_test);
-    free_mnist_labels(&y_test); */
+    free_mnist_labels(&y_test);
     return 0;
 }

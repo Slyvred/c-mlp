@@ -2,9 +2,9 @@
 #include <stdlib.h>
 #include "mnist.h"
 
-idx3 read_images_mnist(const char* path) {
+IDX3_t read_images_mnist(const char* path) {
     FILE* file = fopen(path, "rb");
-    idx3 dataset = { 0, 0, 0, 0, NULL };
+    IDX3_t dataset = { 0, 0, 0, 0, NULL };
 
     if (file == NULL) {
         printf("Failed to open file, check path or permissions.\n");
@@ -35,9 +35,9 @@ idx3 read_images_mnist(const char* path) {
     return dataset;
 }
 
-idx1 read_labels_mnist(const char* path) {
+IDX1_t read_labels_mnist(const char* path) {
     FILE* file = fopen(path, "rb");
-    idx1 dataset = {0, 0, NULL};
+    IDX1_t dataset = {0, 0, NULL};
 
     if (file == NULL) {
         printf("Failed to open file, check path or permissions.\n");
@@ -66,16 +66,16 @@ idx1 read_labels_mnist(const char* path) {
     return dataset;
 }
 
-void get_mnist_image_norm(float* output, idx3* dataset, int index) {
+void get_mnist_image_norm(float* output, IDX3_t* dataset, int index) {
     for (int i = 0; i < 784; i++) {
         output[i] = (float)dataset->images[i + 784 * index] / 255.0;
     }
 }
 
-void free_mnist_images(idx3* dataset) {
+void free_mnist_images(IDX3_t* dataset) {
     free(dataset->images);
 }
 
-void free_mnist_labels(idx1* dataset) {
+void free_mnist_labels(IDX1_t* dataset) {
     free(dataset->labels);
 }
