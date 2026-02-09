@@ -39,8 +39,8 @@ int main(int argc, char** argv) {
     }
 
     Model model;
-    model.add_layer<LeakyRelu>(800, 784);
-    model.add_layer<Softmax>(10, 800);
+    model.add_layer<LeakyRelu>(128, 784);
+    model.add_layer<Softmax>(10, 128);
 
     std::vector<float> x_buf(784);
     std::vector<float> y_buf(10);
